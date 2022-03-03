@@ -14,12 +14,11 @@ datasource db {
 // Việc đặt đồ kèm giao đồ k ?
 // Làm thế nào biết trạng thái đơn hàng: đặt nhắp - đã thu tiền - đã lên đơn - đã giao - đã hủy
 model ProductCategory {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  products    Product[]
+  id        Int       @id @default(autoincrement())
+  name      String
+  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+  products  Product[]
 }
 
 model BlogCategory {
@@ -35,6 +34,8 @@ model Product {
   name              String
   price             Decimal?
   description       String?
+  quantity          Int?
+  quantitySold      Int?
   slug              String           @unique
   updatedAt         DateTime         @updatedAt
   createdAt         DateTime         @default(now())
@@ -42,32 +43,8 @@ model Product {
   productCategoryId Int?
   images            Image[]
   orderItem         OrderItem[]
-  comboProducts     ComboProduct[]
   discount          Discount?        @relation(fields: [discountId], references: [id])
   discountId        Int?             @unique
-}
-
-model ComboProduct {
-  id        Int      @id @default(autoincrement())
-  quantity  Int?
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-  Product   Product? @relation(fields: [productId], references: [id])
-  productId Int?
-  Combo     Combo?   @relation(fields: [comboId], references: [id])
-  comboId   Int?
-}
-
-model Combo {
-  id              Int            @id @default(autoincrement())
-  name            String?
-  description     String?
-  discountPercent Decimal?
-  total           Decimal?
-  expiryDate      DateTime?
-  comboProducts   ComboProduct[]
-  updatedAt       DateTime       @updatedAt
-  createdAt       DateTime       @default(now())
 }
 
 model Discount {
@@ -110,25 +87,36 @@ model Blog {
 model Customer {
   id              Int               @id @default(autoincrement())
   name            String
-  address         String?
   phoneNumber     String
   email           String
   password        String
+  status          String?
   dateOfBirth     String?
   updatedAt       DateTime          @updatedAt
   createdAt       DateTime          @default(now())
   orders          Order[]
   customerAddress CustomerAddress[]
-  customerPayment CustomerPayment[]
+}
+
+model CustomerAddress {
+  id          Int       @id @default(autoincrement())
+  address     String
+  phoneNumber String
+  email       String
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+  Customer    Customer? @relation(fields: [customerId], references: [id])
+  customerId  Int?
 }
 
 model User {
   id                Int                      @id @default(autoincrement())
-  username          String
   name              String
+  email             String
   password          String
   avatar            String?
   status            String?
+  address           String
   updatedAt         DateTime                 @updatedAt
   createdAt         DateTime                 @default(now())
   orders            Order[]
@@ -136,37 +124,15 @@ model User {
   blogs             Blog[]
 }
 
-model CustomerAddress {
-  id         Int       @id @default(autoincrement())
-  address    String?
-  city       String?
-  postalCode String?
-  country    String?
-  telephone  String?
-  mobile     String?
-  updatedAt  DateTime  @updatedAt
-  createdAt  DateTime  @default(now())
-  Customer   Customer? @relation(fields: [customerId], references: [id])
-  customerId Int?
-}
-
-model CustomerPayment {
-  id          Int       @id @default(autoincrement())
-  paymentType String?
-  expiry      DateTime?
-  provider    String?
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  Customer    Customer? @relation(fields: [customerId], references: [id])
-  customerId  Int?
-}
-
 model Order {
   id              Int            @id @default(autoincrement())
   total           Decimal
   note            String?
-  status          String?
-  updatedAt       DateTime       @updatedAt
+  orderStatus     String
+  address         String
+  phoneNumber     String
+  email           String
+  dateCompleted   DateTime?
   createdAt       DateTime       @default(now())
   orderItems      OrderItem[]
   user            User?          @relation(fields: [userId], references: [id])
@@ -182,20 +148,20 @@ model OrderItem {
   quantity  Int
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
-  Order     Order?   @relation(fields: [orderId], references: [id])
+  Order     Order?   @relation(fields: [orderId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   orderId   Int?
-  Product   Product? @relation(fields: [productId], references: [id])
+  Product   Product? @relation(fields: [productId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   productId Int?
 }
 
 model PaymentDetail {
-  id        Int      @id @default(autoincrement())
-  amount    Decimal?
-  provider  String?
-  status    String?
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-  Order     Order?
+  id            Int      @id @default(autoincrement())
+  amount        Decimal
+  paymentType   String?
+  paymentStatus String
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  Order         Order?
 }
 
 model PermistionRelationship {
@@ -227,6 +193,15 @@ model PermistionDetail {
   createdAt    DateTime    @default(now())
   Permistion   Permistion? @relation(fields: [permistionId], references: [id])
   permistionId Int?
+}
+
+model Setting {
+  id        Int      @id @default(autoincrement())
+  type      String
+  value     String
+  name      String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
 
 // enum OrderStatus {

@@ -1,7 +1,6 @@
 import expressLoader from './loaders/express';
 import swaggerLoader from './loaders/swagger';
 import passportLoader from './loaders/passport';
-import deserializeUser from './middlewares/deserializeUser';
 import env from './configs/env';
 import router from './apis/routes';
 
@@ -13,7 +12,6 @@ function initApp() {
   swaggerLoader(app);
   passportLoader(app);
 
-  app.use(deserializeUser);
   router(app);
 
   // handle error

@@ -1,58 +1,47 @@
 import { NextFunction, Request, Response } from 'express';
-import { getSession } from '../utils/session';
-import { signJWT, verifyJWT } from '../utils/jwt.ultils';
+import jwt from 'jsonwebtoken';
+import { verifyJWT } from '../utils/jwt.ultils';
 import env from '../configs/env';
-import { SessionInformation } from '../interfaces';
-
-export default async function deserializeUser(
+import ApiError from '../utils/api-error';
+import httpStatus from 'http-status';
+export const requireLogin = async (
   req: Request,
   res: Response,
   next: NextFunction
-) {
-  const { accessToken, refreshToken } = req.cookies;
+) => {
+  const { authorization } = req.headers;
+  let token;
 
-  if (!accessToken) {
-    return next();
+  if (authorization && authorization.startsWith('Bearer '))
+    token = authorization.split(' ')[1];
+
+  if (!token) {
+    res.status(401);
+    throw new Error('Not authorized to access this route');
   }
 
-  const { payload, expired } = verifyJWT(accessToken);
+  try {
+    const { payload, expired } = verifyJWT(token);
+    if (payload) {
+      console.log('payload: ', payload);
+      res.locals.userInfo = payload;
+      return next();
+    }
 
-  // For a valid access token
-  if (payload) {
-    console.log('payload: ', payload);
-    res.locals.userInfo = payload;
-    return next();
+    if (expired) throw true;
+
+    next();
+  } catch (err: any) {
+    if (err.name === 'TokenExpiredError') {
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        'Authentication token expired'
+      );
+    } else {
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        'Not authorized to access this route'
+      );
+    }
   }
-
-  // valid access token but expired token
-  const { payload: refreshPayload } =
-    expired && refreshToken ? verifyJWT(refreshToken) : { payload: null };
-
-  if (!refreshPayload) {
-    return next();
-  }
-
-  // @ts-ignore
-  const session: SessionInformation = (await getSession(
-    refreshPayload?.sessionId as string
-  )) as SessionInformation;
-  if (!session) {
-    return next();
-  }
-  console.log('session ac new: ', session);
-  const newAccessToken = signJWT(
-    session as object,
-    env.passport.jwtAccessExpired as string
-  );
-
-  res.cookie('accessToken', newAccessToken, {
-    maxAge: parseInt(env.passport.jwtRefreshExpired as string),
-    httpOnly: true,
-    secure: !env.isDevelopment,
-    sameSite: 'none',
-  });
-
-  res.locals.userInfo = verifyJWT(newAccessToken).payload;
-
-  return next();
-}
+};

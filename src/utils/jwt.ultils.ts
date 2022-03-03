@@ -10,16 +10,18 @@ export function signJWT(payload: object, expiresIn: string | number) {
   const key = fs.readFileSync(__dirname + '/../../jwtRS256.key');
   const secretKey = key as Secret;
 
-  return jwt.sign(payload as object, secretKey, { algorithm: 'RS256', expiresIn });
+  return jwt.sign(payload as object, secretKey, {
+    algorithm: 'RS256',
+    expiresIn,
+  });
 }
 
 // verify jwt
 export function verifyJWT(token: string) {
   try {
-    const key = fs.readFileSync(__dirname + '/../../jwtRS256.key.pub');
-    const publicKey = key as Secret;
+    const secretKey = env.passport.secretKeyJWT as Secret;
 
-    const decoded = jwt.verify(token, publicKey);
+    const decoded = jwt.verify(token, secretKey);
     return { payload: decoded, expired: false };
   } catch (error: any) {
     return { payload: null, expired: error.message.includes('jwt expired') };
