@@ -7,7 +7,7 @@ import path from 'path';
 
 // sign jwt
 export function signJWT(payload: object, expiresIn: string | number) {
-  const key = fs.readFileSync(__dirname + '/../../jwtRS256.key');
+  const key = env.passport.secretKeyJWT;
   const secretKey = key as Secret;
 
   return jwt.sign(payload as object, secretKey, {

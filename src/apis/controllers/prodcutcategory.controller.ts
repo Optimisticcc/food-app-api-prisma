@@ -8,65 +8,65 @@ import {
 import ApiError from '../../utils/api-error';
 import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
+
 const index = catchAsync(async (req: Request, res: Response) => {
-  const blogCategories = await prisma.$queryRaw`exec getAllBlogCategory`;
+  const productCategories = await prisma.$queryRaw`exec getAllProductCategory`;
   const { page, perPage } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const perPageNum = parseInt(perPage as string) || 20;
   // const cats = await getAllCate()
   return res.status(httpStatus.OK).json({
-    message: 'get all list blog categories successfully',
+    message: 'get all product categories successfully',
     success: true,
     data: {
-      data: blogCategories.slice(
+      data: productCategories.slice(
         (pageNum - 1) * perPageNum,
         pageNum * perPageNum
       ),
-      length: blogCategories.length,
+      length: productCategories.length,
     },
   });
 });
 
 const show = catchAsync(async (req: Request, res: Response) => {
-  const blogCategory = await prisma.$queryRaw`exec getOneBlogCategory ${Number(
-    req.params.id
-  )}`;
+  const productCategory =
+    await prisma.$queryRaw`exec getOneProductCategory ${Number(req.params.id)}`;
 
-  if (!blogCategory) {
+  if (!productCategory) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'Get one blog category failed',
+      message: 'Get one product category failed',
       success: false,
     });
   }
   return res.status(httpStatus.OK).json({
-    message: 'get one blog category successfully',
-    data: blogCategory,
+    message: 'get one product category successfully',
+    data: productCategory,
     success: true,
   });
 });
 
 const create = catchAsync(async (req: Request, res: Response) => {
   const { name } = req.body;
-  await prisma.$queryRaw`exec createBlogCategory ${name}`;
+  await prisma.$queryRaw`exec createProductCategory ${name}`;
   return res.status(httpStatus.OK).json({
-    message: 'create blog category successfully',
+    message: 'create product category successfully',
     success: true,
   });
 });
 
 const update = catchAsync(async (req: Request, res: Response) => {
   const { name } = req.body;
-  await prisma.$queryRaw`exec updateBlogCategory ${Number(
+  await prisma.$queryRaw`exec updateProductCategory ${Number(
     req.params.id
   )},${name}`;
   return res.status(httpStatus.OK).json({
-    message: 'update blog category successfully',
+    message: 'update product category successfully',
     success: true,
   });
 });
 
 const remove = catchAsync(async (req: Request, res: Response) => {
-  await prisma.$queryRaw`exec deleteBlogCategory ${Number(req.params.id)}`;
+  await prisma.$queryRaw`exec deleteProductCategory ${Number(req.params.id)}`;
   return res.status(httpStatus.OK).json({
     message: 'delete blog category successfully',
     success: true,

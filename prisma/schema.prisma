@@ -32,7 +32,7 @@ model BlogCategory {
 model Product {
   id                Int              @id @default(autoincrement())
   name              String
-  price             Decimal?
+  price             Decimal
   description       String?
   quantity          Int?
   quantitySold      Int?
@@ -43,29 +43,28 @@ model Product {
   productCategoryId Int?
   images            Image[]
   orderItem         OrderItem[]
-  discount          Discount?        @relation(fields: [discountId], references: [id])
-  discountId        Int?             @unique
 }
 
 model Discount {
   id              Int       @id @default(autoincrement())
-  discountPercent Decimal?
-  isActive        Boolean   @default(true)
+  code            String
+  discountPercent Decimal
+  isActive        Boolean?  @default(true) @db.Bit
   deletedAt       DateTime?
   updatedAt       DateTime  @updatedAt
   createdAt       DateTime  @default(now())
-  product         Product?
+
+  Order Order?
 }
 
 model Image {
-  id          Int      @id @default(autoincrement())
-  link        String
-  description String?
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  Product     Product? @relation(fields: [productId], references: [id])
-  productId   Int?
-  Blog        Blog?
+  id        Int      @id @default(autoincrement())
+  source    String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  Product   Product? @relation(fields: [productId], references: [id])
+  productId Int?
+  Blog      Blog?
 }
 
 model Blog {
@@ -85,28 +84,17 @@ model Blog {
 }
 
 model Customer {
-  id              Int               @id @default(autoincrement())
-  name            String
-  phoneNumber     String
-  email           String
-  password        String
-  status          String?
-  dateOfBirth     String?
-  updatedAt       DateTime          @updatedAt
-  createdAt       DateTime          @default(now())
-  orders          Order[]
-  customerAddress CustomerAddress[]
-}
-
-model CustomerAddress {
-  id          Int       @id @default(autoincrement())
-  address     String
+  id          Int      @id @default(autoincrement())
+  name        String
   phoneNumber String
   email       String
-  updatedAt   DateTime  @updatedAt
-  createdAt   DateTime  @default(now())
-  Customer    Customer? @relation(fields: [customerId], references: [id])
-  customerId  Int?
+  password    String
+  address     String?
+  status      Int      @default(1) @db.Bit
+  dateOfBirth String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  orders      Order[]
 }
 
 model User {
@@ -141,6 +129,8 @@ model Order {
   customerId      Int?
   paymentDetail   PaymentDetail? @relation(fields: [paymentDetailId], references: [id])
   paymentDetailId Int?           @unique
+  discount        Discount?      @relation(fields: [discountId], references: [id])
+  discountId      Int?           @unique
 }
 
 model OrderItem {
@@ -166,7 +156,7 @@ model PaymentDetail {
 
 model PermistionRelationship {
   id           Int         @id @default(autoincrement())
-  suspend      Boolean?
+  suspend      Boolean?    @default(true) @db.Bit
   updatedAt    DateTime    @updatedAt
   createdAt    DateTime    @default(now())
   User         User?       @relation(fields: [userId], references: [id])
