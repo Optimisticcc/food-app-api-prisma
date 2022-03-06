@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import httpStatus from 'http-status';
 import {
   catchAsync,
+  generateVerifyEmailToken,
   removeVietnameseTones,
   removeVietnameseTonesStrikeThrough,
+  sendMail,
 } from '../../utils/';
 import {
   registerCustomer,
@@ -46,6 +48,25 @@ const signUp = catchAsync(async (req: Request, res: Response) => {
     success: true,
   });
 });
+
+// send mail verify account after create
+const sendVerificationEmail = catchAsync(
+  async (req: Request, res: Response) => {
+    const { email, id } = req.user as Customer;
+
+    const verifyEmailToken = generateVerifyEmailToken({
+      id: id,
+      name: email,
+    });
+    const subject = 'Xác thực tài khoản';
+    let confirmationUrl = env.feUrl + `/verify-email/${verifyEmailToken}`;
+    const text = `Click vào link sau để xác thực tài khoản: ${confirmationUrl}`;
+    await sendMail(email, subject, text);
+    return res.status(httpStatus.OK).json({
+      message: 'email sent successfully',
+    });
+  }
+);
 
 const logIn = catchAsync(async (req: Request, res: Response) => {
   const user = req.user as Customer;
@@ -143,5 +164,23 @@ const remove = catchAsync(async (req: Request, res: Response) => {
     success: true,
   });
 });
+
+// const sendVerificationEmail = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const { email, id } = req.user as User;
+
+//     const verifyEmailToken = generateVerifyEmailToken({
+//       id: id,
+//       name: email,
+//     });
+//     const subject = 'Xác thực tài khoản';
+//     let confirmationUrl = env.feUrl + `/verify-email/${verifyEmailToken}`;
+//     const text = `Click vào link sau để xác thực tài khoản: ${confirmationUrl}`;
+//     await sendMail(email, subject, text);
+//     return res.status(httpStatus.OK).json({
+//       message: 'email sent successfully',
+//     });
+//   }
+// );
 
 export { index, update, remove, show, signUp, updateCustomerByAdmin };

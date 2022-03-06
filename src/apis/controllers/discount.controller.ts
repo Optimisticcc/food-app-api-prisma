@@ -8,12 +8,13 @@ import {
 import ApiError from '../../utils/api-error';
 import { createProduct, updateProduct } from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { createDiscount, updateDiscount } from 'src/services/discount';
 const prisma = new PrismaClient();
 
 const index = catchAsync(async (req: Request, res: Response) => {
   const discounts = await prisma.discount.findMany({
     include: {
-      product: true,
+      Order: true,
     },
   });
   const { page, perPage } = req.query;
@@ -31,74 +32,71 @@ const index = catchAsync(async (req: Request, res: Response) => {
 });
 
 const show = catchAsync(async (req: Request, res: Response) => {
-  const product = await prisma.product.findFirst({
+  const discount = await prisma.discount.findFirst({
     where: {
       id: Number(req.params.id),
     },
     include: {
-      images: true,
-      ProductCategory: true,
+      Order: true,
     },
   });
-  if (!product) {
+  if (!discount) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'Get one product failed',
+      message: 'Get one discount failed',
       success: false,
     });
   }
   return res.status(httpStatus.OK).json({
-    message: 'get one product successfully',
-    data: product,
+    message: 'get one discount successfully',
+    data: discount,
     success: true,
   });
 });
 
 const create = catchAsync(async (req: Request, res: Response) => {
-  const product = await createProduct({
+  const discount = await createDiscount({
     ...req.body,
-    slug: removeVietnameseTonesStrikeThrough(req.body.name),
   });
-  if (!product) {
+  if (!discount) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'create product failed',
+      message: 'create discount failed',
       success: false,
     });
   }
   return res.status(httpStatus.OK).json({
-    message: 'create product successfully',
+    message: 'create discount successfully',
     success: true,
   });
 });
 
 const update = catchAsync(async (req: Request, res: Response) => {
-  const product = await updateProduct(+req.params.id, {
+  const discount = await updateDiscount(+req.params.id, {
     ...req.body,
-    slug: removeVietnameseTonesStrikeThrough(req.body.name),
   });
-  if (!product) {
+  if (!discount) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'update product failed',
+      message: 'update discount failed',
       success: false,
     });
   }
   return res.status(httpStatus.OK).json({
-    message: 'update product successfully',
+    message: 'update discount successfully',
     success: true,
   });
 });
 
 const remove = catchAsync(async (req: Request, res: Response) => {
-  const product = await prisma.product.delete({
+  const discount = await prisma.discount.delete({
     where: { id: +req.params.id },
   });
-  if (!product) {
+  if (!discount) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'delete product failed',
+      message: 'delete discount failed',
       success: false,
     });
   }
   return res.status(httpStatus.OK).json({
-    message: 'delete product category successfully',
+    message: 'delete discount successfully',
     success: true,
   });
 });

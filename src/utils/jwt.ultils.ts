@@ -11,7 +11,6 @@ export function signJWT(payload: object, expiresIn: string | number) {
   const secretKey = key as Secret;
 
   return jwt.sign(payload as object, secretKey, {
-    algorithm: 'RS256',
     expiresIn,
   });
 }
@@ -22,9 +21,9 @@ export function verifyJWT(token: string) {
     const secretKey = env.passport.secretKeyJWT as Secret;
 
     const decoded = jwt.verify(token, secretKey);
-    return { payload: decoded, expired: false };
+    return decoded;
   } catch (error: any) {
-    return { payload: null, expired: error.message.includes('jwt expired') };
+    return null;
   }
 }
 

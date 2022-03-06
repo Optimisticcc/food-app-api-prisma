@@ -6,50 +6,73 @@ import {
   removeVietnameseTonesStrikeThrough,
 } from '../../utils/';
 import ApiError from '../../utils/api-error';
-import { createProduct, updateProduct } from '../../services';
+import { filterOrder } from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const index = catchAsync(async (req: Request, res: Response) => {
-  const products = await prisma.product.findMany({
+  const orders = await prisma.order.findMany({
     include: {
-      images: true,
-      ProductCategory: true,
+      Customer: true,
+      orderItems: true,
+      user: true,
+      paymentDetail: true,
+      discount: true,
     },
   });
+
   const { page, perPage } = req.query;
   const pageNum = parseInt(page as string) || 1;
   const perPageNum = parseInt(perPage as string) || 20;
   // const cats = await getAllCate()
   return res.status(httpStatus.OK).json({
-    message: 'get all products successfully',
+    message: 'get all orders successfully',
     success: true,
     data: {
-      data: products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-      length: products.length,
+      data: orders.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+      length: orders.length,
+    },
+  });
+});
+
+const filterOrders = catchAsync(async (req: Request, res: Response) => {
+  const orders = await filterOrder(req.body);
+  const { page, perPage } = req.query;
+  const pageNum = parseInt(page as string) || 1;
+  const perPageNum = parseInt(perPage as string) || 20;
+  // const cats = await getAllCate()
+  return res.status(httpStatus.OK).json({
+    message: 'get all orders successfully',
+    success: true,
+    data: {
+      data: orders.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+      length: orders.length,
     },
   });
 });
 
 const show = catchAsync(async (req: Request, res: Response) => {
-  const product = await prisma.product.findFirst({
+  const order = await prisma.order.findFirst({
     where: {
       id: Number(req.params.id),
     },
     include: {
-      images: true,
-      ProductCategory: true,
+      Customer: true,
+      orderItems: true,
+      user: true,
+      paymentDetail: true,
+      discount: true,
     },
   });
-  if (!product) {
+  if (!order) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-      message: 'Get one product failed',
+      message: 'Get one orders failed',
       success: false,
     });
   }
   return res.status(httpStatus.OK).json({
-    message: 'get one product successfully',
-    data: product,
+    message: 'get one orders successfully',
+    data: order,
     success: true,
   });
 });

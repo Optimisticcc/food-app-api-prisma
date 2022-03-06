@@ -46,15 +46,15 @@ model Product {
 }
 
 model Discount {
-  id              Int       @id @default(autoincrement())
-  code            String
+  id              Int      @id @default(autoincrement())
+  code            String   @unique
   discountPercent Decimal
-  isActive        Boolean?  @default(true) @db.Bit
-  deletedAt       DateTime?
-  updatedAt       DateTime  @updatedAt
-  createdAt       DateTime  @default(now())
-
-  Order Order?
+  isActive        Boolean? @default(true) @db.Bit
+  startDate       DateTime
+  expirationDate  DateTime
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  Order           Order?
 }
 
 model Image {
@@ -90,7 +90,7 @@ model Customer {
   email       String
   password    String
   address     String?
-  status      Int      @default(1) @db.Bit
+  status      Boolean? @default(true) @db.Bit
   dateOfBirth String?
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
@@ -98,18 +98,19 @@ model Customer {
 }
 
 model User {
-  id                Int                      @id @default(autoincrement())
-  name              String
-  email             String
-  password          String
-  avatar            String?
-  status            String?
-  address           String
-  updatedAt         DateTime                 @updatedAt
-  createdAt         DateTime                 @default(now())
-  orders            Order[]
-  permisionRelation PermistionRelationship[]
-  blogs             Blog[]
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  phoneNumber           String
+  email                 String
+  password              String
+  avatar                String?
+  status                Boolean?                @default(true) @db.Bit
+  address               String
+  updatedAt             DateTime                @updatedAt
+  createdAt             DateTime                @default(now())
+  orders                Order[]
+  blogs                 Blog[]
+  PermisionRelationship PermisionRelationship[]
 }
 
 model Order {
@@ -154,35 +155,35 @@ model PaymentDetail {
   Order         Order?
 }
 
-model PermistionRelationship {
-  id           Int         @id @default(autoincrement())
-  suspend      Boolean?    @default(true) @db.Bit
-  updatedAt    DateTime    @updatedAt
-  createdAt    DateTime    @default(now())
-  User         User?       @relation(fields: [userId], references: [id])
-  userId       Int?
-  Permistion   Permistion? @relation(fields: [permistionId], references: [id])
-  permistionId Int?
+model PermisionRelationship {
+  id          Int        @id @default(autoincrement())
+  suspend     Boolean?   @default(true) @db.Bit
+  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime   @default(now())
+  User        User?      @relation(fields: [userId], references: [id])
+  userId      Int?
+  Permision   Permision? @relation(fields: [permisionId], references: [id])
+  permisionId Int?
 }
 
-model Permistion {
-  id                Int                      @id @default(autoincrement())
-  name              String?
-  description       String?
-  updatedAt         DateTime                 @updatedAt
-  createdAt         DateTime                 @default(now())
-  permisionRelation PermistionRelationship[]
-  permistionDetails PermistionDetail[]
+model Permision {
+  id                    Int                     @id @default(autoincrement())
+  name                  String
+  description           String?
+  updatedAt             DateTime                @updatedAt
+  createdAt             DateTime                @default(now())
+  permisionDetails      PermisionDetail[]
+  permisionRelationship PermisionRelationship[]
 }
 
-model PermistionDetail {
-  id           Int         @id @default(autoincrement())
-  nameAction   String?
-  codeAction   String?
-  updatedAt    DateTime    @updatedAt
-  createdAt    DateTime    @default(now())
-  Permistion   Permistion? @relation(fields: [permistionId], references: [id])
-  permistionId Int?
+model PermisionDetail {
+  id          Int        @id @default(autoincrement())
+  nameAction  String?
+  codeAction  String
+  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime   @default(now())
+  Permision   Permision? @relation(fields: [permisionId], references: [id])
+  permisionId Int?
 }
 
 model Setting {

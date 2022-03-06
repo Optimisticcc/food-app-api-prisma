@@ -6,7 +6,6 @@ import env from '../configs/env';
 // import passportFacebook, { StrategyOption } from "passport-facebook";
 import { isPasswordMatch } from '../helpers';
 // import { Strategy as GoogleStrategy, StrategyOptions as BaseStrategyOptions } from 'passport-google-oauth20';
-import { validate, schemas, userSchema } from '../validation';
 const LocalStrategy = passportLocal.Strategy;
 
 const prisma = new PrismaClient();
@@ -16,16 +15,17 @@ passport.use(
     { usernameField: 'username' },
     async (username: string, password: string, done: any) => {
       try {
-        await validate(userSchema.authSignInSchema, { username, password });
-        const user = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: username },
-              { phoneNumber: username },
-              { code: username },
-            ],
-          },
-        });
+        const user =
+          (await prisma.user.findFirst({
+            where: {
+              email: username,
+            },
+          })) ||
+          (await prisma.customer.findFirst({
+            where: {
+              email: username,
+            },
+          }));
 
         if (!user || !user.password) {
           return done(null, false);

@@ -20,11 +20,12 @@ import { roleSchema, schemas, userSchema, validate } from '../../validation';
 import {
   addRoleForUser,
   createRole,
-  deleteRoles, deleteUserRole,
+  deleteRoles,
+  deleteUserRole,
   findRoles,
   getRoleById,
   getRolesOfUser,
-} from '../../services/user/userRoles';
+} from '../../services/user/userPer';
 
 import {
   addCatsForRole,
@@ -117,8 +118,10 @@ const addRoleForUserHandler = catchAsync(
     const userRole = await getRolesOfUser(+userID);
     const userRoleId: number[] = userRole.map((role) => role.id);
     const roleAdd = arrRoleIds.filter((roleId) => !userRoleId.includes(roleId));
-    const roleDelete = userRoleId.filter((roleId) => !arrRoleIds.includes(roleId));
-    await deleteUserRole(roleDelete)
+    const roleDelete = userRoleId.filter(
+      (roleId) => !arrRoleIds.includes(roleId)
+    );
+    await deleteUserRole(roleDelete);
     for (let i in roleAdd) {
       await addRoleForUser({ userID, roleID: roleAdd[i] });
     }
@@ -303,14 +306,16 @@ const getRolesHandler = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getRolesByUserIdHandler = catchAsync(async (req: Request, res: Response) => {
-  await validate(schemas.idSchema, req.params)
-  const roles = await getRolesOfUser(+req.params.id);
-  return res.status(httpStatus.OK).json({
-    message: 'get role of user successfully',
-    data: roles,
-  });
-})
+const getRolesByUserIdHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    await validate(schemas.idSchema, req.params);
+    const roles = await getRolesOfUser(+req.params.id);
+    return res.status(httpStatus.OK).json({
+      message: 'get role of user successfully',
+      data: roles,
+    });
+  }
+);
 
 export {
   createUserProfileByAdmin,
@@ -332,5 +337,5 @@ export {
   getUserProfileHandler,
   getAllUserHandler,
   getRolesHandler,
-  getRolesByUserIdHandler
+  getRolesByUserIdHandler,
 };

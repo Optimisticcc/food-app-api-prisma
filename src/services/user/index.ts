@@ -15,44 +15,20 @@ const register = async (userBody: RegisterInput) => {
   const { password } = userBody;
   const passwordHash = await hashPassword(password as string);
 
-  let userData: Prisma.UserCreateInput = {
-    code: userBody.code as string,
-    email: userBody.email as string,
-    name: userBody.name as string,
-    password: passwordHash,
-    phoneNumber: userBody.phoneNumber as string,
-  };
-
-  if (userBody.orgID) {
-    userData.organization = {
-      connect: {
-        id: +userBody.orgID,
-      },
-    };
-  }
   return prisma.user.create({
-    data: userData,
+    data: {
+      ...userBody,
+      password: passwordHash,
+    },
   });
 };
 
-const getUserByEmail = async (email: string) => {
-  return prisma.user.findFirst({
+const editUserProfile = async (id: number, userBody: EditUserProfileInput) => {
+  return prisma.user.update({
     where: {
-      email,
+      id,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phoneNumber: true,
-      address: true,
-      description: true,
-      organization: {
-        select: {
-          name: true,
-        },
-      },
-    },
+    data: userBody,
   });
 };
 
@@ -77,25 +53,6 @@ const isEmailOrPhoneNumberExists = async (
   }
 };
 
-const getUserByPhoneNumber = async (phoneNumber: string) => {
-  return prisma.user.findFirst({
-    where: {
-      phoneNumber,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phoneNumber: true,
-      organization: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  });
-};
-
 const getUserByID = async (id: number) => {
   return prisma.user.findFirst({
     where: {
@@ -105,31 +62,10 @@ const getUserByID = async (id: number) => {
       name: true,
       email: true,
       phoneNumber: true,
-      organization: {
-        select: {
-          name: true,
-        },
-      },
+      address: true,
+      avatar: true,
+      status: true,
     },
-  });
-};
-
-const updateVerifyUser = async (id: number) => {
-  return prisma.user.update({
-    where: {
-      id,
-    },
-    data: { isVerified: true },
-  });
-};
-
-const verifyCreateUser = async (id: number, password: string) => {
-  const passwordHash = await hashPassword(password);
-  return prisma.user.update({
-    where: {
-      id,
-    },
-    data: { password: passwordHash, isVerified: true },
   });
 };
 
@@ -148,30 +84,26 @@ const softDeleteUser = async (ids: number[]) => {
   return prisma.user.updateMany({
     where: {
       id: {
-        in: ids
-      }
+        in: ids,
+      },
     },
     data: {
-      isDeleted: true,
+      status: false,
     },
   });
 };
 
 const addUser = async (userBody: AddUserInput) => {
+  const passwordHash = await hashPassword(userBody.password as string);
   let userData: Prisma.UserCreateInput = {
-    code: userBody.code as string,
     email: userBody.email as string,
     name: userBody.name as string,
     phoneNumber: userBody.phoneNumber as string,
+    address: userBody.address as string,
+    password: passwordHash,
+    avatar: (userBody.avatar as string) || '',
   };
 
-  if (userBody.orgID) {
-    userData.organization = {
-      connect: {
-        id: +userBody.orgID,
-      },
-    };
-  }
   return prisma.user.create({
     data: userData,
   });
@@ -179,18 +111,6 @@ const addUser = async (userBody: AddUserInput) => {
 
 // update user profile by admin
 const updateUser = async (id: number, args: UpdateUserInput) => {
-  return prisma.user.update({
-    where: {
-      id,
-    },
-    data: {
-      ...args,
-    },
-  });
-};
-
-//  user edit self profile
-const editUserProfile = async (id: number, args: EditUserProfileInput) => {
   return prisma.user.update({
     where: {
       id,
@@ -212,29 +132,21 @@ const findManyUsers = async (filter: Prisma.UserWhereInput) => {
     where: filter,
     select: {
       id: true,
-      code: true,
       email: true,
       phoneNumber: true,
       name: true,
       address: true,
-      description: true,
-      isVerified: true,
-      isDeleted: true,
-      organization: {
-        select: {
-          code: true,
-          name: true,
-          level: true,
-          enabled: true,
-          description: true,
-        },
-      },
-      userRoles: {
+      status: true,
+      PermisionRelationship: {
         include: {
-          role: {
-            select: {
-              code: true,
-              name: true
+          Permision: {
+            include: {
+              permisionDetails: {
+                select: {
+                  codeAction: true,
+                  nameAction: true,
+                },
+              },
             },
           },
         },
@@ -244,18 +156,14 @@ const findManyUsers = async (filter: Prisma.UserWhereInput) => {
 };
 
 export {
-  register,
   isEmailOrPhoneNumberExists,
-  getUserByEmail,
-  getUserByPhoneNumber,
   getUserByID,
-  updateVerifyUser,
   resetPassword,
   softDeleteUser,
   addUser,
   updateUser,
-  editUserProfile,
   getOneUser,
-  verifyCreateUser,
   findManyUsers,
+  editUserProfile,
+  register,
 };

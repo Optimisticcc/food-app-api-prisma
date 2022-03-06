@@ -1,5 +1,4 @@
 import expressLoader from './loaders/express';
-import swaggerLoader from './loaders/swagger';
 import passportLoader from './loaders/passport';
 import env from './configs/env';
 import router from './apis/routes';
@@ -9,7 +8,6 @@ function initApp() {
   const app = expressLoader();
 
   // swagger
-  swaggerLoader(app);
   passportLoader(app);
 
   router(app);
