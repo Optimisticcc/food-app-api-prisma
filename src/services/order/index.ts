@@ -17,6 +17,27 @@ const filterOrder = async (filter: Prisma.OrderWhereInput) => {
   });
 };
 
-const createOrder = async (order: OrderInput) => {};
+const createOrder = async (order: OrderInput) => {
+  let data: Prisma.OrderCreateInput = {
+    address: order.address,
+    email: order.email,
+    phoneNumber: order.phoneNumber,
+    note: order.note,
+    total: order.total,
+    orderStatus: order.orderStatus,
+  };
+  data.Customer = {
+    connect: { id: order.customerId },
+  };
+
+  if (order.userId) {
+    data.user = {
+      connect: { id: order.userId },
+    };
+  }
+  return prisma.order.create({
+    data,
+  });
+};
 
 export { filterOrder };

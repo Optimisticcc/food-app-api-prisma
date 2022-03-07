@@ -22,7 +22,7 @@ export interface UpdateCustomerInput {
   name?: string;
   dateOfBirth?: string;
   address?: string;
-  status?: number;
+  status?: boolean;
 }
 
 export interface AddCustomerInput {
@@ -31,5 +31,5 @@ export interface AddCustomerInput {
   name: string;
   dateOfBirth?: string;
   address?: string;
-  status?: number;
+  status?: boolean;
 }
