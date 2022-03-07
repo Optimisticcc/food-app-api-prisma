@@ -1,4 +1,4 @@
-import { BlogUpdate, BlogInput } from '../../interfaces';
+import { OrderInput } from '../../interfaces';
 import { Prisma, PrismaClient } from '@prisma/client';
 import ApiError from '../../utils/api-error';
 
@@ -16,5 +16,7 @@ const filterOrder = async (filter: Prisma.OrderWhereInput) => {
     },
   });
 };
+
+const createOrder = async (order: OrderInput) => {};
 
 export { filterOrder };

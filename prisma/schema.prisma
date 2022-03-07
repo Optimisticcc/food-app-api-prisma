@@ -36,7 +36,7 @@ model Product {
   description       String?
   quantity          Int?
   quantitySold      Int?
-  slug              String           @unique
+  code              String           @unique
   updatedAt         DateTime         @updatedAt
   createdAt         DateTime         @default(now())
   ProductCategory   ProductCategory? @relation(fields: [productCategoryId], references: [id])
@@ -115,9 +115,9 @@ model User {
 
 model Order {
   id              Int            @id @default(autoincrement())
-  total           Decimal
+  total           Decimal?
   note            String?
-  orderStatus     String
+  orderStatus     String?
   address         String
   phoneNumber     String
   email           String
