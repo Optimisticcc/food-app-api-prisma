@@ -1,75 +1,82 @@
-// import PromiseRouter from 'express-promise-router';
-// const router = PromiseRouter();
+import PromiseRouter from 'express-promise-router';
+const router = PromiseRouter();
 
-// import {
-//   createUserProfileByAdmin,
-//   updateUserProfileByAdmin,
-//   softDeleteUserByAdmin,
-//   createRoleHandler,
-//   addRoleForUserHandler,
-//   deleteRolesHandler,
-//   addCatsForRoleHandler,
-//   getCatsOfRoleHandler,
-//   updateCatsOfRoleHandler,
-//   getEnableOrgHandler,
-//   getOrgsHandler,
-//   createOrgHandler,
-//   getOrgByIdHandler,
-//   editOrgHandler,
-//   getUserOfOrgHandler,
-//   getChildOrgHandler,
-//   getUserProfileHandler,
-//   getAllUserHandler,
-//   getRolesHandler,
-//   getRolesByUserIdHandler
-// } from '../controllers/admin.controller';
+import {
+  createUserProfileByAdmin,
+  updateUserProfileByAdmin,
+  softDeleteUserByAdmin,
+  deletePersHandler,
+  addPerDetailForPerHandler,
+  getPerDetailOfPerHandler,
+  getUserProfileHandler,
+  getAllUserHandler,
+  getPersHandler,
+  getPersByUserIdHandler,
+  filterPermision,
+  updatePerDetail,
+  createPerDetail,
+  getPerDetailsOfUser,
+  getPermisionByID,
+  createPermisionHandler,
+  addPerForUserHandler,
+} from '../controllers/admin.controller';
 
-// import requireUser, { requireAdmin0 } from '../../middlewares/requireUser';
-// import { verifyEmail } from '../controllers/user.controller';
+import {
+  requireLogin,
+  requireEmployee,
+  requireAdmin,
+} from '../../middlewares/requireUser';
 
-// router.route('/create-account').post(requireAdmin0, createUserProfileByAdmin);
+router
+  .route('/create-user')
+  .post(requireLogin, requireAdmin, createUserProfileByAdmin);
 
-// router.route('/get-all-user').get(requireAdmin0, getAllUserHandler);
+router
+  .route('/get-all-user')
+  .get(requireLogin, requireAdmin, getAllUserHandler);
 
-// router.route('/get-user-info/:id').get(requireAdmin0, getUserProfileHandler);
+router
+  .route('/get-user-info/:id')
+  .get(requireLogin, requireAdmin, getUserProfileHandler);
 
-// router.route('/delete-user').delete(requireAdmin0, softDeleteUserByAdmin);
+router
+  .route('/delete-user')
+  .delete(requireLogin, requireAdmin, softDeleteUserByAdmin);
 
-// router
-//   .route('/update-user-profile/:id')
-//   .put(requireAdmin0, updateUserProfileByAdmin);
+router
+  .route('/update-user-profile/:id')
+  .put(requireLogin, requireAdmin, updateUserProfileByAdmin);
 
-// router.route('/get-roles').get(requireAdmin0, getRolesHandler);
-// router.route('/get-roles/:id').get(requireAdmin0, getRolesByUserIdHandler);
+router.route('/filter-per').get(filterPermision);
 
-// router.route('/create-role').post(createRoleHandler);
+router.route('/get-pers').get(requireLogin, requireAdmin, getPersHandler);
+router
+  .route('/get-pers-of-user/:id')
+  .get(requireLogin, requireAdmin, getPersByUserIdHandler);
 
-// router.route('/delete-roles').delete(requireAdmin0, deleteRolesHandler);
+router
+  .route('/get-per-details-of-user/:id')
+  .get(requireLogin, requireAdmin, getPerDetailsOfUser);
 
-// router.route('/add-role-for-user').post(addRoleForUserHandler);
+router.route('/get-per/:id').get(requireLogin, requireAdmin, getPermisionByID);
+router.route('/create-per').post(createPermisionHandler);
 
-// router.route('/add-cats-for-role').post(addCatsForRoleHandler);
+router
+  .route('/delete-pers')
+  .delete(requireLogin, requireAdmin, deletePersHandler);
 
-// router.route('/get-cats-of-role/:id').get(requireUser, getCatsOfRoleHandler);
+router.route('/add-per-for-user').post(addPerForUserHandler);
 
-// router
-//   .route('/update-cats-of-role/:id')
-//   .put(requireAdmin0, updateCatsOfRoleHandler);
+router.route('/add-perdetail-for-per').post(addPerDetailForPerHandler);
 
-// // org
-// router.route('/organization/get-enable-org').get(getEnableOrgHandler);
-// router
-//   .route('/organization')
-//   .get(requireAdmin0, getOrgsHandler)
-//   .post(requireAdmin0, createOrgHandler);
+router
+  .route('/get-perdetail-of-per/:id')
+  .get(requireLogin, getPerDetailOfPerHandler);
 
-// router
-//   .route('/organization/:id')
-//   .get(requireUser, getOrgByIdHandler)
-//   .put(requireAdmin0, editOrgHandler);
+router
+  .route('/create-perdetail')
+  .post(requireLogin, requireAdmin, createPerDetail);
 
-// router.route('/get-user-of-org/:id').get(requireUser, getUserOfOrgHandler);
+router.route('/perdetail/:id').put(requireLogin, requireAdmin, updatePerDetail);
 
-// router.route('/get-child-org/:id').get(requireUser, getChildOrgHandler);
-
-// export default router;
+export default router;

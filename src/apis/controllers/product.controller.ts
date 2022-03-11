@@ -6,7 +6,16 @@ import {
   removeVietnameseTonesStrikeThrough,
 } from '../../utils/';
 import ApiError from '../../utils/api-error';
-import { createProduct, updateProduct } from '../../services';
+import {
+  checkImageAlreadyUse,
+  checkImageAlreadyUseProduct,
+  checkImageAlreadyUseWhenUpdate,
+  connectImageToProduct,
+  createProduct,
+  disconnectImageToProduct,
+  getImagesOfProduct,
+  updateProduct,
+} from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -17,17 +26,17 @@ const index = catchAsync(async (req: Request, res: Response) => {
       ProductCategory: true,
     },
   });
-  const { page, perPage } = req.query;
-  const pageNum = parseInt(page as string) || 1;
-  const perPageNum = parseInt(perPage as string) || 20;
-  // const cats = await getAllCate()
+  const { pageNo, pageSize } = req.query;
+  const pageNum = parseInt(pageNo as string) || 1;
+  const perPageNum = parseInt(pageSize as string) || 10;
+
   return res.status(httpStatus.OK).json({
-    message: 'get all products successfully',
-    success: true,
-    data: {
-      data: products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-      length: products.length,
-    },
+    data: products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+    totalCount: products.length,
+    totalPage: Math.ceil(products.length / perPageNum),
+    pageSize: perPageNum,
+    pageNo: pageNum,
+    // pageNo: Math.floor(skip / perPageNum) + 1,
   });
 });
 
@@ -55,10 +64,14 @@ const show = catchAsync(async (req: Request, res: Response) => {
 });
 
 const create = catchAsync(async (req: Request, res: Response) => {
+  await checkImageAlreadyUseProduct(req.body.images);
   const product = await createProduct({
     ...req.body,
-    slug: removeVietnameseTonesStrikeThrough(req.body.name),
+    code: removeVietnameseTonesStrikeThrough(req.body.name),
   });
+  for (const img of req.body.images) {
+    await connectImageToProduct(img, product.id);
+  }
   if (!product) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'create product failed',
@@ -72,10 +85,20 @@ const create = catchAsync(async (req: Request, res: Response) => {
 });
 
 const update = catchAsync(async (req: Request, res: Response) => {
+  await checkImageAlreadyUseWhenUpdate(req.body.images, +req.params.id);
+  const imageOfProduct = await getImagesOfProduct(+req.params.id);
+  for (const img of imageOfProduct) {
+    await disconnectImageToProduct(img);
+  }
   const product = await updateProduct(+req.params.id, {
     ...req.body,
-    slug: removeVietnameseTonesStrikeThrough(req.body.name),
+    code: removeVietnameseTonesStrikeThrough(req.body.name),
   });
+
+  for (const image of req.body.images) {
+    await connectImageToProduct(image, product.id);
+  }
+
   if (!product) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'update product failed',
@@ -88,10 +111,21 @@ const update = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// User: 0,
+//     title: "",
+//     summary: "",
+//     content: "",
+//     BlogCategory: 0,
+//     image: 0,
 const remove = catchAsync(async (req: Request, res: Response) => {
+  const imageOfProduct = await getImagesOfProduct(+req.params.id);
+  for (const img of imageOfProduct) {
+    await disconnectImageToProduct(img);
+  }
   const product = await prisma.product.delete({
     where: { id: +req.params.id },
   });
+
   if (!product) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'delete product failed',

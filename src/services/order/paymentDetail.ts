@@ -9,3 +9,6 @@ const prisma = new PrismaClient();
 // productId Int?
 //  quantity  Int
 // const createOrderItem = async (orderItems: )
+
+// const createPayment = async ()
+const createPayment = async () => {};

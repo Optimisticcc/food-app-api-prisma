@@ -27,305 +27,255 @@ import {
   getPermisionOfUser,
   createPermisionDetail,
   updatePermisionDetail,
+  findPers,
+  addPerDetailForPer,
+  getPerDetailOfPer,
 } from '../../services/user/userPer';
 
 import env from '../../configs/env';
 
-// const softDeleteUserByAdmin = catchAsync(
-//   async (req: Request, res: Response) => {
-//     await validate(schemas.idArrSchema, req.body);
-//     try {
-//       await softDeleteUser(req.body.id);
-//       return res.status(httpStatus.OK).json({
-//         message: 'delete user successfully',
-//       });
-//     } catch (e: any) {
-//       throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
-//     }
-//   }
-// );
+const getPermisionByID = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const permision = await getPermisionById(+req.params.id);
+    return res.status(httpStatus.OK).json({
+      data: permision,
+      message: 'get permision filter successfully',
+    });
+  } catch (e: any) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
+  }
+});
+const getPerDetailsOfUser = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const perDetails = await getPermisionDetailOfUser(+req.params.id);
+    return res.status(httpStatus.OK).json({
+      data: perDetails,
+      message: 'get perDetails of user successfully',
+    });
+  } catch (e: any) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
+  }
+});
 
-// const createUserProfileByAdmin = catchAsync(
-//   async (req: Request, res: Response) => {
-//     await validate(userSchema.addUserInput, req.body);
-//     await isEmailOrPhoneNumberExists(req.body?.email, req.body?.phoneNumber);
-//     const user = await addUser(req.body);
+const createPerDetail = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const permision = await createPermisionDetail(req.body);
+    return res.status(httpStatus.OK).json({
+      data: permision,
+      message: 'create permision detail successfully',
+    });
+  } catch (e: any) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
+  }
+});
 
-//     // send email verify for user
-//     const verifyEmailToken = generateVerifyEmailToken({
-//       id: user.id,
-//       name: user.email,
-//     });
-//     const subject = 'Xác thực tài khoản';
-//     let confirmationUrl = env.feUrl + `/verify-email/${verifyEmailToken}`;
-//     const text = `Click vào link sau để xác thực tài khoản: ${confirmationUrl}`;
-//     await sendMail(user.email, subject, text);
+const updatePerDetail = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const permision = await updatePermisionDetail(+req.params.id, req.body);
+    return res.status(httpStatus.OK).json({
+      data: permision,
+      message: 'update permision detail successfully',
+    });
+  } catch (e: any) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
+  }
+});
 
-//     // return
-//     return res.status(httpStatus.CREATED).json({
-//       message: 'add user successfully, please verify email before login',
-//       data: user,
-//     });
-//   }
-// );
+const filterPermision = catchAsync(async (req: Request, res: Response) => {
+  try {
+    const permision = await findPermision(req.body);
+    return res.status(httpStatus.OK).json({
+      data: permision,
+      message: 'get permision filter successfully',
+    });
+  } catch (e: any) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
+  }
+});
 
-// const updateUserProfileByAdmin = catchAsync(
-//   async (req: Request, res: Response) => {
-//     const args: UpdateUserInput = { ...req.body };
-//     const user = await updateUser(+req.params?.id, args);
-//     return res.status(httpStatus.OK).json({
-//       message: 'update user successfully',
-//       data: user,
-//     });
-//   }
-// );
+const softDeleteUserByAdmin = catchAsync(
+  async (req: Request, res: Response) => {
+    try {
+      await softDeleteUser(req.body.id);
+      return res.status(httpStatus.OK).json({
+        message: 'delete user successfully',
+      });
+    } catch (e: any) {
+      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, e.message);
+    }
+  }
+);
 
-// const createRoleHandler = catchAsync(async (req: Request, res: Response) => {
-//   await validate(roleSchema.createRole, req.body);
-//   console.log(req.body);
-//   const role = await createRole(req.body);
+const createUserProfileByAdmin = catchAsync(
+  async (req: Request, res: Response) => {
+    await isEmailOrPhoneNumberExists(req.body?.email, req.body?.phoneNumber);
+    const user = await addUser(req.body);
+    // return
+    return res.status(httpStatus.CREATED).json({
+      message: 'add user successfully, please verify email before login',
+      data: user,
+    });
+  }
+);
 
-//   return res.status(httpStatus.CREATED).json({
-//     message: 'create role successfully',
-//     data: role,
-//   });
-// });
+const updateUserProfileByAdmin = catchAsync(
+  async (req: Request, res: Response) => {
+    const args: UpdateUserInput = { ...req.body };
+    const user = await updateUser(+req.params?.id, args);
+    return res.status(httpStatus.OK).json({
+      message: 'update user successfully',
+      data: user,
+    });
+  }
+);
 
-// const addRoleForUserHandler = catchAsync(
-//   async (req: Request, res: Response) => {
-//     await validate(roleSchema.addRoleForUser, req.body);
-//     const userID = req.body.userId as number;
-//     const arrRoleIds: number[] = req.body.roleIds.map((i: string) => Number(i));
+const createPermisionHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const permision = await createPermision(req.body);
+    return res.status(httpStatus.CREATED).json({
+      message: 'create permision successfully',
+      data: permision,
+    });
+  }
+);
 
-//     const user = await getUserByID(+userID);
-//     if (!user) {
-//       throw new ApiError(
-//         httpStatus.NOT_FOUND,
-//         `not found user with id = ${userID}`
-//       );
-//     }
+const addPerForUserHandler = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.body.userId as number;
+  const arrPerIds: number[] = req.body.perIds.map((i: string) => Number(i));
 
-//     const userRole = await getRolesOfUser(+userID);
-//     const userRoleId: number[] = userRole.map((role) => role.id);
-//     const roleAdd = arrRoleIds.filter((roleId) => !userRoleId.includes(roleId));
-//     const roleDelete = userRoleId.filter(
-//       (roleId) => !arrRoleIds.includes(roleId)
-//     );
-//     await deleteUserRole(roleDelete);
-//     for (let i in roleAdd) {
-//       await addRoleForUser({ userID, roleID: roleAdd[i] });
-//     }
-//     return res.status(httpStatus.OK).json({
-//       message: `add role: ${roleAdd} for user: ${user.email} successfully`,
-//     });
-//   }
-// );
+  const user = await getUserByID(+userId);
+  if (!user) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      `not found user with id = ${userId}`
+    );
+  }
 
-// const deleteRolesHandler = catchAsync(async (req: Request, res: Response) => {
-//   await validate(roleSchema.arrayIds, req.body);
-//   if (req.body.roles.length === 0) {
-//     throw new ApiError(
-//       httpStatus.BAD_REQUEST,
-//       'you must select least 1 role to delete'
-//     );
-//   }
-//   const arrRoles: number[] = req.body.roles.map((i: string) => Number(i));
-//   await deleteRoles(arrRoles);
-//   return res.status(httpStatus.OK).json({
-//     message: 'deleted roles successfully',
-//   });
-// });
+  const userPer = await getPermisionOfUser(+userId);
+  if (userPer && userPer.length > 0) {
+    const userPerId: number[] = userPer.map((per) => per.id);
+    const perAdd = arrPerIds.filter((perId) => !userPerId.includes(perId));
+    const roleDelete = userPerId.filter((perId) => !arrPerIds.includes(perId));
+    await deleteUserPermision(roleDelete);
+    for (let i in perAdd) {
+      await addPermisionForUser({ userId, permisionId: perAdd[i] });
+    }
+    return res.status(httpStatus.OK).json({
+      message: `add role: ${perAdd} for user: ${user.email} successfully`,
+    });
+  } else {
+    for (let i in arrPerIds) {
+      await addPermisionForUser({ userId, permisionId: arrPerIds[i] });
+    }
+    return res.status(httpStatus.OK).json({
+      message: `add role: ${arrPerIds} for user: ${user.email} successfully`,
+    });
+  }
+});
 
-// const addCatsForRoleHandler = catchAsync(
-//   async (req: Request, res: Response) => {
-//     await validate(roleSchema.addCatsForRole, req.body);
-//     if (req.body.catIds.length === 0) {
-//       throw new ApiError(
-//         httpStatus.BAD_REQUEST,
-//         'you must select least 1 category'
-//       );
-//     }
-//     const arrCats: number[] = req.body.catIds.map((i: string) => Number(i));
+const deletePersHandler = catchAsync(async (req: Request, res: Response) => {
+  if (req.body.pers.length === 0) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'you must select least 1 role to delete'
+    );
+  }
+  const arrPers: number[] = req.body.pers.map((i: string) => Number(i));
+  await deletePermision(arrPers);
+  return res.status(httpStatus.OK).json({
+    message: 'deleted pers successfully',
+  });
+});
 
-//     await addCatsForRole(+req.body.role, arrCats);
-//     return res.status(httpStatus.CREATED).json({
-//       message: 'add roles successfully',
-//     });
-//   }
-// );
+const addPerDetailForPerHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    if (req.body.perDetailIds.length === 0) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        'you must select least 1 permision detail'
+      );
+    }
+    const arrPerDetails: number[] = req.body.perDetailIds.map((i: string) =>
+      Number(i)
+    );
+    for (let i in arrPerDetails) {
+      await addPerDetailForPer(+req.body.idPer, arrPerDetails[i]);
+    }
+    return res.status(httpStatus.CREATED).json({
+      message: 'add perdetail for per successfully',
+    });
+  }
+);
 
-// const getCatsOfRoleHandler = catchAsync(async (req: Request, res: Response) => {
-//   await validate(schemas.idSchema, req.params);
-//   const cats = await getCatsOfRole(+req.params.id);
-//   return res.status(httpStatus.OK).json({
-//     message: 'get category of role successfully',
-//     data: cats,
-//   });
-// });
+const getPerDetailOfPerHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const perDetails = await getPerDetailOfPer(+req.params.id);
+    return res.status(httpStatus.OK).json({
+      message: 'get perdetail of per successfully',
+      data: perDetails,
+    });
+  }
+);
 
-// const updateCatsOfRoleHandler = catchAsync(
-//   async (req: Request, res: Response) => {
-//     await Promise.all([
-//       validate(schemas.idSchema, req.params),
-//       validate(roleSchema.updateCatsOfRole, req.body),
-//     ]);
-//     const arrCats: number[] = req.body.catIds.map((i: string) => Number(i));
+const getUserProfileHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = await getUserByID(+req.params.id);
+    if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'user not found');
+    return res.status(httpStatus.OK).json({
+      message: 'get user profile successfully',
+      data: user,
+    });
+  }
+);
 
-//     await updateCatsOfRole(+req.params.id, arrCats);
-//   }
-// );
+const getAllUserHandler = catchAsync(async (req: Request, res: Response) => {
+  const { page, perPage } = req.query;
+  const pageNum = parseInt(page as string) || 1;
+  const perPageNum = parseInt(perPage as string) || 10;
+  const users = await findManyUsers({});
+  return res.status(httpStatus.OK).json({
+    message: 'get all users successfully',
+    data: {
+      data: users.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+      length: users.length,
+    },
+  });
+});
 
-// const getEnableOrgHandler = catchAsync(async (req: Request, res: Response) => {
-//   const organizations = await getOrg({ enabled: true });
-//   return res.status(httpStatus.OK).json({
-//     message: 'get enable organizations successfully',
-//     data: organizations,
-//   });
-// });
+const getPersHandler = catchAsync(async (req: Request, res: Response) => {
+  const roles = await findPers({});
+  return res.status(httpStatus.OK).json({
+    message: 'get roles successfully',
+    data: roles,
+  });
+});
 
-// const getOrgsHandler = catchAsync(async (req: Request, res: Response) => {
-//   const organizations = await getOrg({});
-//   return res.status(httpStatus.OK).json({
-//     message: 'get enable organizations successfully',
-//     data: organizations,
-//   });
-// });
+const getPersByUserIdHandler = catchAsync(
+  async (req: Request, res: Response) => {
+    const roles = await getPermisionOfUser(+req.params.id);
+    return res.status(httpStatus.OK).json({
+      message: 'get per of user successfully',
+      data: roles,
+    });
+  }
+);
 
-// const createOrgHandler = catchAsync(async (req: Request, res: Response) => {
-//   await validate(organizationSchema.createOrg, req.body);
-//   let org = req.body;
-//   if (req.body.parentID) {
-//     const { parentID, ...rest } = req.body;
-//     org = {
-//       parent: {
-//         connect: { id: +parentID },
-//       },
-//       ...rest,
-//     };
-//   }
-//   const createdOrg = await createOrg(org);
-//   return res.status(httpStatus.CREATED).json({
-//     message: 'create organization successfully',
-//     data: createdOrg,
-//   });
-// });
-
-// const getOrgByIdHandler = catchAsync(async (req: Request, res: Response) => {
-//   await validate(schemas.idSchema, req.params);
-//   const org = await getOrg({ id: +req.params.id });
-//   return res.status(httpStatus.OK).json({
-//     message: 'get organization info successfully',
-//     data: org[0],
-//   });
-// });
-
-// const editOrgHandler = catchAsync(async (req: Request, res: Response) => {
-//   await Promise.all([
-//     validate(schemas.idSchema, req.params),
-//     validate(organizationSchema.editOrg, req.body),
-//   ]);
-
-//   let orgInfo = req.body;
-//   if (orgInfo.parentID) {
-//     const { parentID, ...rest } = orgInfo;
-//     orgInfo = {
-//       parent: {
-//         connect: { id: +parentID },
-//       },
-//       ...rest,
-//     };
-//   }
-
-//   const updatedOrg = await updateOrganization(+req.params.id, orgInfo);
-
-//   return res.status(httpStatus.OK).json({
-//     message: 'edit organization info successfully',
-//     data: updatedOrg,
-//   });
-// });
-
-// const getUserOfOrgHandler = catchAsync(async (req: Request, res: Response) => {
-//   await validate(schemas.idSchema, req.params);
-//   const users = await getUserOfOrganization(+req.params.id);
-//   return res.status(httpStatus.OK).json({
-//     message: 'get users of organization successfully',
-//     data: users,
-//   });
-// });
-
-// const getChildOrgHandler = catchAsync(async (req: Request, res: Response) => {
-//   await validate(schemas.idSchema, req.params);
-//   const orgs = await getOrg({ parentID: +req.params.id });
-//   return res.status(httpStatus.OK).json({
-//     message: 'get child organization successfully',
-//     data: orgs,
-//   });
-// });
-
-// const getUserProfileHandler = catchAsync(
-//   async (req: Request, res: Response) => {
-//     await validate(schemas.idSchema, req.params);
-//     const user = await getUserByID(+req.params.id);
-//     if (!user) throw new ApiError(httpStatus.NOT_FOUND, 'user not found');
-//     return res.status(httpStatus.OK).json({
-//       message: 'get user profile successfully',
-//       data: user,
-//     });
-//   }
-// );
-
-// const getAllUserHandler = catchAsync(async (req: Request, res: Response) => {
-//   const { page, perPage } = req.query;
-//   const pageNum = parseInt(page as string) || 1;
-//   const perPageNum = parseInt(perPage as string) || 10;
-//   const users = await findManyUsers({});
-//   return res.status(httpStatus.OK).json({
-//     message: 'get all users successfully',
-//     data: {
-//       data: users.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-//       length: users.length,
-//     },
-//   });
-// });
-
-// const getRolesHandler = catchAsync(async (req: Request, res: Response) => {
-//   const roles = await findRoles({});
-//   return res.status(httpStatus.OK).json({
-//     message: 'get roles successfully',
-//     data: roles,
-//   });
-// });
-
-// const getRolesByUserIdHandler = catchAsync(
-//   async (req: Request, res: Response) => {
-//     await validate(schemas.idSchema, req.params);
-//     const roles = await getRolesOfUser(+req.params.id);
-//     return res.status(httpStatus.OK).json({
-//       message: 'get role of user successfully',
-//       data: roles,
-//     });
-//   }
-// );
-
-// export {
-//   createUserProfileByAdmin,
-//   updateUserProfileByAdmin,
-//   softDeleteUserByAdmin,
-//   createRoleHandler,
-//   addRoleForUserHandler,
-//   deleteRolesHandler,
-//   addCatsForRoleHandler,
-//   getCatsOfRoleHandler,
-//   updateCatsOfRoleHandler,
-//   getEnableOrgHandler,
-//   getOrgsHandler,
-//   createOrgHandler,
-//   getOrgByIdHandler,
-//   editOrgHandler,
-//   getUserOfOrgHandler,
-//   getChildOrgHandler,
-//   getUserProfileHandler,
-//   getAllUserHandler,
-//   getRolesHandler,
-//   getRolesByUserIdHandler,
-// };
+export {
+  createUserProfileByAdmin,
+  updateUserProfileByAdmin,
+  softDeleteUserByAdmin,
+  deletePersHandler,
+  addPerDetailForPerHandler,
+  getPerDetailOfPerHandler,
+  getUserProfileHandler,
+  getAllUserHandler,
+  getPersHandler,
+  getPersByUserIdHandler,
+  filterPermision,
+  updatePerDetail,
+  createPerDetail,
+  getPerDetailsOfUser,
+  getPermisionByID,
+  createPermisionHandler,
+  addPerForUserHandler,
+};

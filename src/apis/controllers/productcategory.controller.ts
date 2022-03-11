@@ -4,27 +4,27 @@ import {
   catchAsync,
   removeVietnameseTones,
   removeVietnameseTonesStrikeThrough,
-} from '../../utils/';
+} from '../../utils';
 import ApiError from '../../utils/api-error';
 import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const index = catchAsync(async (req: Request, res: Response) => {
   const productCategories = await prisma.$queryRaw`exec getAllProductCategory`;
-  const { page, perPage } = req.query;
-  const pageNum = parseInt(page as string) || 1;
-  const perPageNum = parseInt(perPage as string) || 20;
-  // const cats = await getAllCate()
+  const { pageNo, pageSize } = req.query;
+  const pageNum = parseInt(pageNo as string) || 1;
+  const perPageNum = parseInt(pageSize as string) || 10;
+
   return res.status(httpStatus.OK).json({
-    message: 'get all product categories successfully',
-    success: true,
-    data: {
-      data: productCategories.slice(
-        (pageNum - 1) * perPageNum,
-        pageNum * perPageNum
-      ),
-      length: productCategories.length,
-    },
+    data: productCategories.slice(
+      (pageNum - 1) * perPageNum,
+      pageNum * perPageNum
+    ),
+    totalCount: productCategories.length,
+    totalPage: Math.ceil(productCategories.length / perPageNum),
+    pageSize: perPageNum,
+    pageNo: pageNum,
+    // pageNo: Math.floor(skip / perPageNum) + 1,
   });
 });
 
@@ -47,7 +47,13 @@ const show = catchAsync(async (req: Request, res: Response) => {
 
 const create = catchAsync(async (req: Request, res: Response) => {
   const { name } = req.body;
-  await prisma.$queryRaw`exec createProductCategory ${name}`;
+  await prisma.$queryRaw`exec createProductCategory ${name}, ${new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', ' ')}, ${new Date()
+    .toISOString()
+    .slice(0, 19)
+    .replace('T', ' ')}`;
   return res.status(httpStatus.OK).json({
     message: 'create product category successfully',
     success: true,

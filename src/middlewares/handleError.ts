@@ -23,7 +23,6 @@ export const errorConverter = (
 
 export const errorHandler = (err: ApiError, req: Request, res: Response) => {
   let { statusCode, message } = err;
-
   if (env.isProduction && !err.isOperational) {
     statusCode = httpStatus.INTERNAL_SERVER_ERROR;
     message = httpStatus[httpStatus.INTERNAL_SERVER_ERROR] as string;

@@ -7,6 +7,8 @@ import {
 } from '@prisma/client';
 const prisma = new PrismaClient();
 
+import httpStatus from 'http-status';
+import ApiError from '../../utils/api-error';
 const getPermisionOfUser = async (
   userID: number
 ): Promise<Permision[] | undefined> => {
@@ -106,6 +108,25 @@ const deleteUserPermision = async (pers: number[]) => {
   });
 };
 
+const deleteUserPermisionWithName = async (userId: number) => {
+  const perRelation = await prisma.permisionRelationship.findFirst({
+    where: {
+      userId: +userId,
+    },
+  });
+  if (perRelation) {
+    console.log(
+      '🚀 ~ file: userPer.ts ~ line 118 ~ deleteUserPermisionWithName ~ perRelation',
+      perRelation
+    );
+    await prisma.permisionRelationship.delete({
+      where: {
+        id: perRelation.id,
+      },
+    });
+  }
+};
+
 const findPermision = async (filter: Prisma.PermisionWhereInput) => {
   return prisma.permision.findMany({
     where: filter,
@@ -113,13 +134,9 @@ const findPermision = async (filter: Prisma.PermisionWhereInput) => {
 };
 
 const createPermisionDetail = async (
-  idPer: number,
   data: Prisma.PermisionDetailCreateInput
 ) => {
   // @ts-ignore
-  data.Permision?.connect = {
-    id: +idPer,
-  };
   return prisma.permisionDetail.create({
     data,
   });
@@ -137,6 +154,63 @@ const updatePermisionDetail = async (
   });
 };
 
+const findPers = async (filter: Prisma.PermisionWhereInput) => {
+  return prisma.permision.findMany({
+    where: filter,
+  });
+};
+
+const addPerDetailForPer = async (idPer: number, idPerDetail: number) => {
+  const perDetail = await prisma.permisionDetail.findFirst({
+    where: {
+      permisionId: +idPer,
+      id: idPerDetail,
+    },
+  });
+
+  if (perDetail) {
+    throw new ApiError(
+      httpStatus.BAD_REQUEST,
+      'permision detail already taken'
+    );
+  } else {
+    return prisma.permision.update({
+      where: {
+        id: +idPer,
+      },
+      data: {
+        permisionDetails: {
+          connect: {
+            id: +idPerDetail,
+          },
+        },
+      },
+    });
+  }
+};
+
+const getPerDetailOfPer = async (idPer: number) => {
+  return prisma.permisionDetail.findMany({
+    where: {
+      permisionId: +idPer,
+    },
+  });
+};
+
+const getAllPer = async () => {
+  const pers = await prisma.permision.findMany({
+    select: {
+      name: true,
+      id: true,
+    },
+  });
+  return pers.map((per) => {
+    return {
+      name: per.name,
+      id: per.id,
+    };
+  });
+};
 export {
   findPermision,
   deleteUserPermision,
@@ -148,4 +222,9 @@ export {
   getPermisionOfUser,
   createPermisionDetail,
   updatePermisionDetail,
+  findPers,
+  getAllPer,
+  addPerDetailForPer,
+  getPerDetailOfPer,
+  deleteUserPermisionWithName,
 };

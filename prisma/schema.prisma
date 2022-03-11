@@ -33,9 +33,9 @@ model Product {
   id                Int              @id @default(autoincrement())
   name              String
   price             Decimal
-  description       String?
-  quantity          Int?
-  quantitySold      Int?
+  description       String?          @db.VarChar(8000)
+  quantity          Int
+  quantitySold      Int
   code              String           @unique
   updatedAt         DateTime         @updatedAt
   createdAt         DateTime         @default(now())
@@ -48,7 +48,7 @@ model Product {
 model Discount {
   id              Int      @id @default(autoincrement())
   code            String   @unique
-  discountPercent Decimal
+  discountPercent Decimal  @default(0)
   isActive        Boolean? @default(true) @db.Bit
   startDate       DateTime
   expirationDate  DateTime
@@ -60,6 +60,7 @@ model Discount {
 model Image {
   id        Int      @id @default(autoincrement())
   source    String
+  isPicked  Boolean  @default(false) @db.Bit
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
   Product   Product? @relation(fields: [productId], references: [id])
@@ -70,17 +71,17 @@ model Image {
 model Blog {
   id             Int           @id @default(autoincrement())
   title          String
-  summary        String?
-  content        String?
+  summary        String        @db.VarChar(8000)
+  content        String        @db.VarChar(8000)
   slug           String        @unique
   updatedAt      DateTime      @updatedAt
   createdAt      DateTime      @default(now())
   BlogCategory   BlogCategory? @relation(fields: [blogCategoryId], references: [id])
   blogCategoryId Int?
-  image          Image?        @relation(fields: [imageId], references: [id])
-  imageId        Int?          @unique
   User           User?         @relation(fields: [userId], references: [id])
   userId         Int?
+  image          Image?        @relation(fields: [imageId], references: [id])
+  imageId        Int?          @unique
 }
 
 model Customer {
@@ -89,12 +90,20 @@ model Customer {
   phoneNumber String
   email       String
   password    String
-  address     String?
+  address     String
   status      Boolean? @default(true) @db.Bit
   dateOfBirth String?
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
   orders      Order[]
+}
+
+model Avatar {
+  id        Int      @id @default(autoincrement())
+  source    String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  User      User?
 }
 
 model User {
@@ -103,7 +112,7 @@ model User {
   phoneNumber           String
   email                 String
   password              String
-  avatar                String?
+  avatar                Avatar?                 @relation(fields: [avatarId], references: [id])
   status                Boolean?                @default(true) @db.Bit
   address               String
   updatedAt             DateTime                @updatedAt
@@ -111,13 +120,14 @@ model User {
   orders                Order[]
   blogs                 Blog[]
   PermisionRelationship PermisionRelationship[]
+  avatarId              Int?                    @unique
 }
 
 model Order {
   id              Int            @id @default(autoincrement())
-  total           Decimal?
+  total           Decimal?       @default(0)
   note            String?
-  orderStatus     String?
+  orderStatus     Boolean        @default(false) @db.Bit
   address         String
   phoneNumber     String
   email           String
@@ -148,8 +158,8 @@ model OrderItem {
 model PaymentDetail {
   id            Int      @id @default(autoincrement())
   amount        Decimal
-  paymentType   String?
-  paymentStatus String
+  paymentType   String
+  paymentStatus Boolean  @default(false) @db.Bit
   updatedAt     DateTime @updatedAt
   createdAt     DateTime @default(now())
   Order         Order?
@@ -157,7 +167,7 @@ model PaymentDetail {
 
 model PermisionRelationship {
   id          Int        @id @default(autoincrement())
-  suspend     Boolean?   @default(true) @db.Bit
+  suspend     Boolean?   @default(false) @db.Bit
   updatedAt   DateTime   @updatedAt
   createdAt   DateTime   @default(now())
   User        User?      @relation(fields: [userId], references: [id])
@@ -178,7 +188,7 @@ model Permision {
 
 model PermisionDetail {
   id          Int        @id @default(autoincrement())
-  nameAction  String?
+  nameAction  String
   codeAction  String
   updatedAt   DateTime   @updatedAt
   createdAt   DateTime   @default(now())
@@ -194,19 +204,3 @@ model Setting {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
-
-// enum OrderStatus {
-//   COMPLETE
-//   INCOMPLETE
-//   @@map("order_status")
-// }
-// enum PaymentStatus {
-//   PAID
-//   UNPAID
-//   @@map("payment_status")
-// }
-// enum PaymentType {
-//   MOMO
-//   COD
-//   @@map("payment_type")
-// }

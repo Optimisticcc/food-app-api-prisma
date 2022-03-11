@@ -1,26 +1,13 @@
-// import PromiseRouter from 'express-promise-router';
-// const router = PromiseRouter();
+import PromiseRouter from 'express-promise-router';
+const router = PromiseRouter();
 // import passport, { session } from 'passport';
-
-// import {
-//   signUp,
-//   signIn,
-//   logout,
-//   forgotPassword,
-//   resetPasswordHandler,
-//   getProfile,
-//   editProfile,
-//   sendVerificationEmail,
-//   verifyEmail,
-//   getUserRole,
-//   changePasswordHandler,
-//   getCatsOfUser,
-//   verifyAccountCreateByAdminHandler,
-// } from '../controllers/user.controller';
-
-// import requireUser from '../../middlewares/requireUser';
-
-// const passportConfig = require('../../middlewares/handlePassport');
+import { requireLogin, requireEmployee } from '../../middlewares/requireUser';
+import {
+  index,
+  show,
+  create,
+  filterOrders,
+} from '../controllers/order.controller';
 
 // router
 //   .route('/signIn')
@@ -30,11 +17,10 @@
 
 // router.route('/logout').get(requireUser, logout);
 
-// router
-//   .route('/profile')
-//   .get(requireUser, getProfile)
-//   .put(requireUser, editProfile);
+router.route('/').get(requireLogin, index).post(requireLogin, create);
+router.route('/filter').get(requireLogin, filterOrders);
 
+router.route('/:id').get(show);
 // router.route('/send-mail-verify').post(sendVerificationEmail);
 
 // router.route('/verify-email/:token').get(verifyEmail);
@@ -53,4 +39,4 @@
 
 // router.route('/get-cats-of-user').get(requireUser, getCatsOfUser);
 
-// export default router;
+export default router;

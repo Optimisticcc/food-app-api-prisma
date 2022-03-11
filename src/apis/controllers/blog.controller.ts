@@ -6,7 +6,7 @@ import {
   removeVietnameseTonesStrikeThrough,
 } from '../../utils/';
 import ApiError from '../../utils/api-error';
-import { updateBlog, createBlog } from '../../services';
+import { updateBlog, createBlog, checkImageAlreadyUse } from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
@@ -18,17 +18,17 @@ const index = catchAsync(async (req: Request, res: Response) => {
       image: true,
     },
   });
-  const { page, perPage } = req.query;
-  const pageNum = parseInt(page as string) || 1;
-  const perPageNum = parseInt(perPage as string) || 20;
-  // const cats = await getAllCate()
+  const { pageNo, pageSize } = req.query;
+  const pageNum = parseInt(pageNo as string) || 1;
+  const perPageNum = parseInt(pageSize as string) || 10;
+
   return res.status(httpStatus.OK).json({
-    message: 'get all list blog categories successfully',
-    success: true,
-    data: {
-      data: blogs.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-      length: blogs.length,
-    },
+    data: blogs.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+    totalCount: blogs.length,
+    totalPage: Math.ceil(blogs.length / perPageNum),
+    pageSize: perPageNum,
+    pageNo: pageNum,
+    // pageNo: Math.floor(skip / perPageNum) + 1,
   });
 });
 
@@ -91,6 +91,32 @@ const update = catchAsync(async (req: Request, res: Response) => {
 });
 
 const remove = catchAsync(async (req: Request, res: Response) => {
+  const blogDisconnect = await prisma.blog.findFirst({
+    where: { id: +req.params.id },
+    select: {
+      blogCategoryId: true,
+      imageId: true,
+      userId: true,
+    },
+  });
+
+  if (blogDisconnect?.blogCategoryId) {
+    await prisma.blog.update({
+      where: { id: +req.params.id },
+      data: {
+        BlogCategory: { disconnect: true },
+      },
+    });
+  }
+
+  if (blogDisconnect?.userId) {
+    await prisma.blog.update({
+      where: { id: +req.params.id },
+      data: {
+        User: { disconnect: true },
+      },
+    });
+  }
   const blog = await prisma.blog.delete({
     where: { id: +req.params.id },
   });

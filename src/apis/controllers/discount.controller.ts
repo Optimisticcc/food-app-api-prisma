@@ -6,28 +6,23 @@ import {
   removeVietnameseTonesStrikeThrough,
 } from '../../utils/';
 import ApiError from '../../utils/api-error';
-import { createProduct, updateProduct } from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { createDiscount, updateDiscount } from 'src/services/discount';
+import { createDiscount, updateDiscount } from '../../services/';
 const prisma = new PrismaClient();
 
 const index = catchAsync(async (req: Request, res: Response) => {
-  const discounts = await prisma.discount.findMany({
-    include: {
-      Order: true,
-    },
-  });
-  const { page, perPage } = req.query;
-  const pageNum = parseInt(page as string) || 1;
-  const perPageNum = parseInt(perPage as string) || 20;
-  // const cats = await getAllCate()
+  const discounts = await prisma.discount.findMany({});
+  const { pageNo, pageSize } = req.query;
+  const pageNum = parseInt(pageNo as string) || 1;
+  const perPageNum = parseInt(pageSize as string) || 10;
+
   return res.status(httpStatus.OK).json({
-    message: 'get all discounts successfully',
-    success: true,
-    data: {
-      data: discounts.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-      length: discounts.length,
-    },
+    data: discounts.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+    totalCount: discounts.length,
+    totalPage: Math.ceil(discounts.length / perPageNum),
+    pageSize: perPageNum,
+    pageNo: pageNum,
+    // pageNo: Math.floor(skip / perPageNum) + 1,
   });
 });
 

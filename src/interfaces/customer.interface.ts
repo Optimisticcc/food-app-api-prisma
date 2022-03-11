@@ -22,6 +22,7 @@ export interface UpdateCustomerInput {
   name?: string;
   dateOfBirth?: string;
   address?: string;
+  password?: string;
   status?: boolean;
 }
 

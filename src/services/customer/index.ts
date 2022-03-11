@@ -8,8 +8,6 @@ import {
 } from '../../interfaces/';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { hashPassword } from '../../helpers';
-import async from 'async';
-
 const prisma = new PrismaClient();
 
 const isEmailExist = async (email: string) => {
@@ -28,6 +26,10 @@ const isEmailExist = async (email: string) => {
 };
 
 const registerCustomer = async (customerBody: RegisterCustomerInput) => {
+  console.log(
+    '🚀 ~ file: index.ts ~ line 29 ~ registerCustomer ~ customerBody',
+    customerBody
+  );
   const { password } = customerBody;
   const passwordHash = await hashPassword(password as string);
   let customerData: Prisma.CustomerCreateInput = {
@@ -35,6 +37,7 @@ const registerCustomer = async (customerBody: RegisterCustomerInput) => {
     name: customerBody.name as string,
     phoneNumber: customerBody.phoneNumber as string,
     password: passwordHash,
+    address: customerBody.address as string,
   };
   if (customerBody.dateOfBirth) {
     customerData.dateOfBirth = customerBody.dateOfBirth;
@@ -57,11 +60,20 @@ const editCustomerProfile = async (
 };
 // by admin
 const updateCustomer = async (id: number, args: UpdateCustomerInput) => {
+  const { password } = args;
+  const passwordHash = await hashPassword(password as string);
+  let dataUpdate: Prisma.CustomerUpdateInput = {
+    address: args.address,
+    email: args.email,
+    dateOfBirth: args.dateOfBirth,
+    name: args.name,
+    password: passwordHash,
+    phoneNumber: args.phoneNumber,
+    status: args.status,
+  };
   return prisma.customer.update({
-    where: {
-      id,
-    },
-    data: { ...args },
+    where: { id: +id },
+    data: dataUpdate,
   });
 };
 // by admin
@@ -72,10 +84,19 @@ const removeCustomer = async (id: number) => {
     },
   });
 };
+
+const getCustomerByEmail = async (email: string) => {
+  return prisma.customer.findFirst({
+    where: {
+      email,
+    },
+  });
+};
 export {
   registerCustomer,
   isEmailExist,
   editCustomerProfile,
   updateCustomer,
   removeCustomer,
+  getCustomerByEmail,
 };

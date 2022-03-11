@@ -1,5 +1,29 @@
-// import PromiseRouter from 'express-promise-router';
-// const router = PromiseRouter();
+import PromiseRouter from 'express-promise-router';
+const router = PromiseRouter();
+
+import { upload } from '../../utils/uploadImage';
+
+import {
+  index,
+  create,
+  update,
+  remove,
+  show,
+  filter,
+} from '../controllers/setting.controller';
+import { requireLogin, requireEmployee } from '../../middlewares/requireUser';
+
+// const passportConfig = require('../../middlewares/handlePassport');
+router.route('/').get(index).post(requireLogin, create);
+
+router.route('/filter').post(filter);
+router
+  .route('/:id')
+  .get(show)
+  .put(requireLogin, update)
+  .delete(requireLogin, remove);
+
+export default router;
 // import passport, { session } from 'passport';
 
 // import {

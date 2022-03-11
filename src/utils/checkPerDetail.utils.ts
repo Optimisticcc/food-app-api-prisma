@@ -24,7 +24,7 @@ export default async function requirePermisionDetails(
   if (!checkPer(code, perDetailsOfUser)) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
-      'you must have roles of category to access this route'
+      'you must have permision action to access this route'
     );
   }
 }

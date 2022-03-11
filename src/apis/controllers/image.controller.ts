@@ -14,16 +14,17 @@ import env from '../../configs/env';
 const prisma = new PrismaClient();
 const index = catchAsync(async (req: Request, res: Response) => {
   const images = await prisma.image.findMany({});
-  const { page, perPage } = req.query;
-  const pageNum = parseInt(page as string) || 1;
-  const perPageNum = parseInt(perPage as string) || 20;
+  const { pageNo, pageSize } = req.query;
+  const pageNum = parseInt(pageNo as string) || 1;
+  const perPageNum = parseInt(pageSize as string) || 10;
+
   return res.status(httpStatus.OK).json({
-    message: 'get all images successfully',
-    success: true,
-    data: {
-      data: images.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-      length: images.length,
-    },
+    data: images.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+    totalCount: images.length,
+    totalPage: Math.ceil(images.length / perPageNum),
+    pageSize: perPageNum,
+    pageNo: pageNum,
+    // pageNo: Math.floor(skip / perPageNum) + 1,
   });
 });
 
@@ -31,7 +32,6 @@ const uploads = catchAsync(async (req: Request, res: Response) => {
   const url = [];
   // @ts-ignore
   for (const file of req.files) {
-    console.log(file);
     // @ts-ignore
     const up = await cloudinary.uploader.upload(file.path, (err, res) => {}, {
       use_filename: true,

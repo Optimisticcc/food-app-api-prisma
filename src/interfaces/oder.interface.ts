@@ -2,7 +2,7 @@ export interface OrderInput {
   code?: string;
   total: number | string;
   note?: string | null;
-  orderStatus: string;
+  orderStatus: boolean;
   address: string;
   phoneNumber: string;
   email: string;

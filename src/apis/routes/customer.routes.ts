@@ -1,7 +1,17 @@
-// import PromiseRouter from 'express-promise-router';
-// const router = PromiseRouter();
-// import passport, { session } from 'passport';
-
+import PromiseRouter from 'express-promise-router';
+const router = PromiseRouter();
+import passport from 'passport';
+import {
+  index,
+  show,
+  signUp,
+  update,
+  logIn,
+  remove,
+  getProfile,
+  editProfile,
+  userInfo,
+} from '../controllers/customer.controller';
 // import {
 //   signUp,
 //   signIn,
@@ -18,39 +28,29 @@
 //   verifyAccountCreateByAdminHandler,
 // } from '../controllers/user.controller';
 
-// import requireUser from '../../middlewares/requireUser';
+import { requireLogin, requireAdmin } from '../../middlewares/requireUser';
 
-// const passportConfig = require('../../middlewares/handlePassport');
+const passportConfig = require('../../middlewares/handlePassport');
 
-// router
-//   .route('/signIn')
-//   .post(passport.authenticate('local', { session: false }), signIn);
+router.route('/').get(requireLogin, index).post(signUp);
 
-// router.route('/signUp').post(signUp, sendVerificationEmail);
+// router.route('/signUp').post(signUp);
 
-// router.route('/logout').get(requireUser, logout);
+router
+  .route('/login')
+  .post(passport.authenticate('local', { session: false }), logIn);
 
-// router
-//   .route('/profile')
-//   .get(requireUser, getProfile)
-//   .put(requireUser, editProfile);
+router.route('/me').get(requireLogin, userInfo);
 
-// router.route('/send-mail-verify').post(sendVerificationEmail);
+router
+  .route('/profile')
+  .get(requireLogin, getProfile)
+  .put(requireLogin, editProfile);
 
-// router.route('/verify-email/:token').get(verifyEmail);
+router
+  .route('/:id')
+  .get(show)
+  .put(requireLogin, update)
+  .delete(requireLogin, remove);
 
-// router
-//   .route('/verify-account-create-by-admin')
-//   .post(verifyAccountCreateByAdminHandler);
-
-// router.route('/send-email-forgot-password').post(forgotPassword);
-
-// router.route('/reset-password/:token').post(resetPasswordHandler);
-
-// router.route('/get-roles').get(requireUser, getUserRole);
-
-// router.route('/change-password').post(requireUser, changePasswordHandler);
-
-// router.route('/get-cats-of-user').get(requireUser, getCatsOfUser);
-
-// export default router;
+export default router;

@@ -29,21 +29,46 @@ export const requireLogin = async (
 
   try {
     const decoded = verifyJWT(token);
+
     // @ts-ignore
     req.user =
       (await prisma.user.findFirst({
         where: {
           // @ts-ignore
           id: decoded.id,
+          // @ts-ignore
+          email: decoded.email,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          address: true,
+          avatar: true,
+          status: true,
         },
       })) ||
       (await prisma.customer.findFirst({
         where: {
           // @ts-ignore
           id: decoded.id,
+          // @ts-ignore
+          email: decoded.email,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          address: true,
+          dateOfBirth: true,
+          status: true,
         },
       }));
 
+    // @ts-ignore
+    req.token = token;
     next();
   } catch (err: any) {
     if (err.name === 'TokenExpiredError') {
@@ -59,6 +84,7 @@ export const requireLogin = async (
     }
   }
 };
+
 export async function requireEmployee(
   req: Request,
   res: Response,
@@ -70,15 +96,21 @@ export async function requireEmployee(
   // getPermisionOfUser,
   // getPermisionDetailOfUser,
   const permisions = await getPermisionOfUser(user.id);
+  if (!permisions || permisions.length === 0) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'you do not permision to access this route'
+    );
+  }
   const permisionName: String[] = [];
   permisions.forEach((role) => {
     permisionName.push(role.name);
   });
   // compare role: admin-0
-  if (!permisionName.includes('employee')) {
+  if (!permisionName.includes('staff')) {
     throw new ApiError(
       httpStatus.FORBIDDEN,
-      'you must be a employee to access this route'
+      'you must be a employee Blog to access this route'
     );
   }
 
@@ -94,6 +126,12 @@ export async function requireAdmin(
   if (!user) throw new ApiError(httpStatus.FORBIDDEN, 'invalid session');
   // get role of user
   const permisions = await getPermisionOfUser(user.id);
+  if (!permisions || permisions.length === 0) {
+    throw new ApiError(
+      httpStatus.FORBIDDEN,
+      'you do not permision to access this route'
+    );
+  }
   const permisionName: String[] = [];
   permisions.forEach((role) => {
     permisionName.push(role.name);

@@ -14,12 +14,7 @@ const App = () => {
       extended: true,
     })
   );
-  app.use(
-    cors({
-      credentials: true,
-      origin: true,
-    })
-  );
+  app.use(cors());
   app.use(
     '/public/images/',
     express.static(path.join(__dirname, '../../public/images'))

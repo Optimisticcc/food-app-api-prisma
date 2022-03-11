@@ -5,8 +5,10 @@ export interface UpdateUserInput {
   address?: string;
   status?: boolean;
   email?: string;
+  password?: string;
+  avatar?: any;
+  pers?: string;
 }
-
 export interface RegisterInput {
   phoneNumber: string;
   name: string;
@@ -14,7 +16,8 @@ export interface RegisterInput {
   status?: boolean;
   email: string;
   password: string;
-  avatar?: string;
+  avatar?: any;
+  pers?: string;
 }
 
 export interface EditUserProfileInput {
@@ -22,7 +25,8 @@ export interface EditUserProfileInput {
   name?: string;
   address?: string;
   email?: string;
-  avatar?: string;
+  avatar?: any;
+  password?: string;
 }
 
 export interface AddUserInput {
@@ -32,5 +36,5 @@ export interface AddUserInput {
   status?: boolean;
   email: string;
   password: string;
-  avatar?: string;
+  avatar?: any;
 }

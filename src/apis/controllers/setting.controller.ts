@@ -9,25 +9,25 @@ import ApiError from '../../utils/api-error';
 import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const index = catchAsync(async (req: Request, res: Response) => {
-  const settings = await prisma.$queryRaw`exec getAllSetting`;
-  const { page, perPage } = req.query;
-  const pageNum = parseInt(page as string) || 1;
-  const perPageNum = parseInt(perPage as string) || 20;
-  // const cats = await getAllCate()
+  const settings = await prisma.setting.findMany({});
+  const { pageNo, pageSize } = req.query;
+  const pageNum = parseInt(pageNo as string) || 1;
+  const perPageNum = parseInt(pageSize as string) || 10;
+
   return res.status(httpStatus.OK).json({
-    message: 'get all settings successfully',
-    success: true,
-    data: {
-      data: settings.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-      length: settings.length,
-    },
+    data: settings.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+    totalCount: settings.length,
+    totalPage: Math.ceil(settings.length / perPageNum),
+    pageSize: perPageNum,
+    pageNo: pageNum,
+    // pageNo: Math.floor(skip / perPageNum) + 1,
   });
 });
 
 const show = catchAsync(async (req: Request, res: Response) => {
-  const setting = await prisma.$queryRaw`exec getOneSetting ${Number(
-    req.params.id
-  )}`;
+  const setting = await prisma.setting.findFirst({
+    where: { id: +req.params.id },
+  });
 
   if (!setting) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
@@ -43,19 +43,24 @@ const show = catchAsync(async (req: Request, res: Response) => {
 });
 
 const create = catchAsync(async (req: Request, res: Response) => {
-  const { name, value, type } = req.body;
-  await prisma.$queryRaw`exec createSetting ${name},${type},${value}`;
+  const setting = await prisma.setting.create({
+    data: {
+      ...req.body,
+    },
+  });
   return res.status(httpStatus.OK).json({
-    message: 'create blog category successfully',
+    message: 'create setting successfully',
     success: true,
+    data: setting,
   });
 });
 
 const update = catchAsync(async (req: Request, res: Response) => {
   const { name, value, type } = req.body;
-  await prisma.$queryRaw`exec updateSetting ${Number(
-    req.params.id
-  )},${name},${type},${value}`;
+  const setting = await prisma.setting.update({
+    where: { id: +req.params.id },
+    data: { ...req.body },
+  });
   return res.status(httpStatus.OK).json({
     message: 'update setting successfully',
     success: true,
@@ -63,11 +68,28 @@ const update = catchAsync(async (req: Request, res: Response) => {
 });
 
 const remove = catchAsync(async (req: Request, res: Response) => {
-  await prisma.$queryRaw`exec deleteSetting ${Number(req.params.id)}`;
+  const setting = await prisma.setting.delete({
+    where: { id: +req.params.id },
+  });
   return res.status(httpStatus.OK).json({
     message: 'delete setting successfully',
     success: true,
   });
 });
 
-export { index, create, update, remove, show };
+const filterSetting = async (filter: Prisma.SettingWhereInput) => {
+  return prisma.setting.findMany({
+    where: filter,
+  });
+};
+
+const filter = catchAsync(async (req: Request, res: Response) => {
+  const setting = await filterSetting(req.body);
+  return res.status(httpStatus.OK).json({
+    message: 'get setting successfully',
+    success: true,
+    data: setting,
+  });
+});
+
+export { index, create, update, remove, show, filter };

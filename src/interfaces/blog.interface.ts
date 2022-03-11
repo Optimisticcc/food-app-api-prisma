@@ -3,6 +3,9 @@ export interface BlogInput {
   summary: string;
   content: string;
   slug: string;
+  userId: number;
+  blogCategoryId: number;
+  image: any;
 }
 
 export interface BlogUpdate {
@@ -10,4 +13,7 @@ export interface BlogUpdate {
   summary?: string;
   content?: string;
   slug?: string;
+  userId?: number;
+  blogCategoryId?: number;
+  image?: any;
 }
