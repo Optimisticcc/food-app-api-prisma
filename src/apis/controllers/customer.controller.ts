@@ -13,6 +13,7 @@ import {
   updateCustomer,
   removeCustomer,
   getCustomerByEmail,
+  changePassword,
 } from '../../services';
 import ApiError from '../../utils/api-error';
 import { Prisma, PrismaClient, Customer } from '@prisma/client';
@@ -110,12 +111,14 @@ const getProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+
 const editProfile = catchAsync(async (req: Request, res: Response) => {
   const user = req.user as Customer;
   try {
     const updatedProfile = await editCustomerProfile(+user.id, {
       ...req.body,
-    });
+    },user);
     const token = signJWT(
       {
         id: updatedProfile.id,

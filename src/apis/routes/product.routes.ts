@@ -6,9 +6,14 @@ import {
   update,
   remove,
   show,
+  getProductByCode,
+  getAllProductByCategory,
 } from '../controllers/product.controller';
 import { requireLogin, requireEmployee } from '../../middlewares/requireUser';
-router.route('/').get(index).post(requireLogin, create);
+import { middleware as query } from '../../utils/querymen';
+router.route('/').get(query(), index).post(requireLogin, create);
+
+router.route('/get-product-by-category').post(getAllProductByCategory);
 
 router
   .route('/:id')

@@ -88,7 +88,7 @@ const create = catchAsync(async (req: Request, res: Response) => {
     const products = await prisma.product.findMany({
       where: {
         id: {
-          in: req.body.items.map((i: any) => i.sanpham.id),
+          in: req.body.items.map((i: any) => i.product.id),
         },
       },
       select: {
@@ -102,12 +102,12 @@ const create = catchAsync(async (req: Request, res: Response) => {
       let notice = '';
       let count = 0;
       for (const [index, item] of req.body.items.entries()) {
-        const p = products.find((i) => i.id === item.sanpham.id);
+        const p = products.find((i) => i.id === item.product.id);
         if (!p) {
           count = count + 1;
           notice =
             notice +
-            `Không tìm thấy sản phẩm có id bằng ${item.sanpham.code}\n`;
+            `Không tìm thấy sản phẩm có id bằng ${item.product.code}\n`;
         } else if (p.quantity < 1) {
           count = count + 1;
           notice = notice + `Sản phẩm có id bằng ${p.code} đã hết hàng\n`;
@@ -116,7 +116,7 @@ const create = catchAsync(async (req: Request, res: Response) => {
           notice =
             notice + `Sản phẩm có id bằng ${p.code} không đủ số lượng \n`;
         } else {
-          req.body.items[index].sanpham = p;
+          req.body.items[index].product = p;
         }
       }
       if (count > 0) {
@@ -129,8 +129,10 @@ const create = catchAsync(async (req: Request, res: Response) => {
     }
   }
   // req.body.items
+  console.log("🚀 ~ file: order.controller.ts ~ line 134 ~ create ~ req.body", req.body)
   const order = await createOrder({
     ...req.body,
+    
   });
   const orderItems = await createOrderItem(order.id, req.body.items);
   if (order && orderItems) {

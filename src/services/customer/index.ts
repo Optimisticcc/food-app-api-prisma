@@ -6,7 +6,7 @@ import {
   AddCustomerInput,
   EditCustomerProfileInput,
 } from '../../interfaces/';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Customer, Prisma, PrismaClient } from '@prisma/client';
 import { hashPassword } from '../../helpers';
 const prisma = new PrismaClient();
 
@@ -47,18 +47,45 @@ const registerCustomer = async (customerBody: RegisterCustomerInput) => {
   });
 };
 // update customer by self
+const changePassword = async (id: number, password: string) => {
+  const passwordHash = await hashPassword(password as string);
+  let dataUpdate: Prisma.CustomerUpdateInput = {
+    password: passwordHash,
+  };
+  return prisma.customer.update({
+    where: { id: +id },
+    data: dataUpdate,
+  });
+};
+
 const editCustomerProfile = async (
   id: number,
-  args: EditCustomerProfileInput
+  args: EditCustomerProfileInput,
+  user: Customer
 ) => {
+  let dataUpdate: Prisma.CustomerUpdateInput = {
+    address: args.address ? args.address : user.address,
+    email: args.email ? args.email : user.email,
+    name: args.name ? args.name : user.name,
+    phoneNumber: args.phoneNumber ? args.phoneNumber : user.phoneNumber,
+    dateOfBirth: args.dateOfBirth ? args.dateOfBirth : user.dateOfBirth,
+  };
+
+  if (args.password) {
+    const { password } = args;
+    const passwordHash = await hashPassword(password as string);
+    dataUpdate.password = passwordHash;
+  }
+ 
   return prisma.customer.update({
     where: {
       id,
     },
-    data: { ...args },
+    data: dataUpdate,
   });
 };
 // by admin
+
 const updateCustomer = async (id: number, args: UpdateCustomerInput) => {
   const { password } = args;
   const passwordHash = await hashPassword(password as string);
@@ -99,4 +126,5 @@ export {
   updateCustomer,
   removeCustomer,
   getCustomerByEmail,
+  changePassword,
 };

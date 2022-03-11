@@ -24,9 +24,9 @@ const createOrder = async (order: OrderInput) => {
     address: order.address,
     email: order.email,
     phoneNumber: order.phoneNumber,
-    note: order.note,
+    note: order.note || '',
     total: order.total,
-    orderStatus: order.orderStatus,
+    orderStatus: order.orderStatus || false,
   };
   data.Customer = {
     connect: { id: order.customerId },

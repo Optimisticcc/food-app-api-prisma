@@ -33,16 +33,32 @@ const index = catchAsync(async (req: Request, res: Response) => {
 });
 
 const show = catchAsync(async (req: Request, res: Response) => {
-  const blog = await prisma.blog.findFirst({
-    where: {
-      id: Number(req.params.id),
-    },
-    include: {
-      BlogCategory: true,
-      User: true,
-      image: true,
-    },
-  });
+  let reg = new RegExp('^[0-9]$');
+  let blog;
+  if (reg.test(req.params.id)) {
+    blog = await prisma.blog.findFirst({
+      where: {
+        id: Number(req.params.id),
+      },
+      include: {
+        image: true,
+        BlogCategory: true,
+        User: true,
+      },
+    });
+  } else {
+    blog = await prisma.blog.findFirst({
+      where: {
+        slug: req.params.id,
+      },
+      include: {
+        image: true,
+        BlogCategory: true,
+        User: true,
+      },
+    });
+  }
+
   if (!blog) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'Get one blog failed',

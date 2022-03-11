@@ -13,6 +13,7 @@ export interface EditCustomerProfileInput {
   address?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
+  password?: string;
 }
 
 // by admin

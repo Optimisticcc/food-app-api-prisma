@@ -5,6 +5,7 @@ import {
   removeVietnameseTones,
   removeVietnameseTonesStrikeThrough,
 } from '../../utils/';
+import { orderBy } from 'lodash';
 import ApiError from '../../utils/api-error';
 import {
   checkImageAlreadyUse,
@@ -13,25 +14,56 @@ import {
   connectImageToProduct,
   createProduct,
   disconnectImageToProduct,
+  getAllProducts,
   getImagesOfProduct,
+  getProductRelated,
   updateProduct,
 } from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const index = catchAsync(async (req: Request, res: Response) => {
-  const products = await prisma.product.findMany({
-    include: {
-      images: true,
-      ProductCategory: true,
-    },
-  });
+  const products = await getAllProducts(
+    req.querymen.query,
+    req.querymen.cursor
+  );
+
   const { pageNo, pageSize } = req.query;
   const pageNum = parseInt(pageNo as string) || 1;
   const perPageNum = parseInt(pageSize as string) || 10;
+  let result = products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum);
+  let data;
+  console.log(
+    '🚀 ~ file: product.controller.ts ~ line 44 ~ index ~ req.querymen.cursor',
+    req.querymen.cursor
+  );
+  if (req.querymen.cursor.sort.hasOwnProperty('name')) {
+    data = orderBy(
+      result,
+      ['name'],
+      req.querymen.cursor.sort.name === 1 ? ['asc'] : ['desc']
+    );
+  } else if (req.querymen.cursor.sort.hasOwnProperty('price')) {
+    console.log(
+      '🚀 ~ file: product.controller.ts ~ line 44 ~ index ~ req.querymen.cursor',
+      req.querymen.cursor.price
+    );
+    console.log('Price');
 
+    data = orderBy(
+      result,
+      ['price'],
+      req.querymen.cursor.sort.price === 1 ? ['asc'] : ['desc']
+    );
+  } else if (req.querymen.cursor.sort.hasOwnProperty('quantitySold')) {
+    data = orderBy(result, ['quantitySold'], ['desc']);
+  } else if (req.querymen.cursor.sort.hasOwnProperty('id')) {
+    data = orderBy(result, ['id'], ['desc']);
+  } else {
+    data = orderBy(result, ['createdAt'], ['desc']);
+  }
   return res.status(httpStatus.OK).json({
-    data: products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+    data: data,
     totalCount: products.length,
     totalPage: Math.ceil(products.length / perPageNum),
     pageSize: perPageNum,
@@ -40,16 +72,51 @@ const index = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllProductByCategory = catchAsync(
+  async (req: Request, res: Response) => {
+    const products = await getProductRelated(+req.body.ProductCategory);
+
+    const { pageNo, pageSize } = req.query;
+    const pageNum = parseInt(pageNo as string) || 1;
+    const perPageNum = parseInt(pageSize as string) || 10;
+
+    return res.status(httpStatus.OK).json({
+      data: products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
+      totalCount: products.length,
+      totalPage: Math.ceil(products.length / perPageNum),
+      pageSize: perPageNum,
+      pageNo: pageNum,
+      // pageNo: Math.floor(skip / perPageNum) + 1,
+    });
+  }
+);
+
 const show = catchAsync(async (req: Request, res: Response) => {
-  const product = await prisma.product.findFirst({
-    where: {
-      id: Number(req.params.id),
-    },
-    include: {
-      images: true,
-      ProductCategory: true,
-    },
-  });
+  // if (req.params.id)
+  let reg = new RegExp('^[0-9]$');
+  let product;
+  if (reg.test(req.params.id)) {
+    product = await prisma.product.findFirst({
+      where: {
+        id: Number(req.params.id),
+      },
+      include: {
+        images: true,
+        ProductCategory: true,
+      },
+    });
+  } else {
+    product = await prisma.product.findFirst({
+      where: {
+        code: req.params.id,
+      },
+      include: {
+        images: true,
+        ProductCategory: true,
+      },
+    });
+  }
+
   if (!product) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'Get one product failed',
@@ -138,4 +205,12 @@ const remove = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { index, create, update, remove, show };
+export {
+  index,
+  create,
+  update,
+  remove,
+  show,
+  getProductByCode,
+  getAllProductByCategory,
+};

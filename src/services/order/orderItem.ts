@@ -14,7 +14,7 @@ const createOrderItem = async (orderId: number, arrProduct: OrderItems[]) => {
   const arrInput = arrProduct.map((item) => {
     return {
       orderId,
-      productId: item.productId,
+      productId: item.product.id,
       quantity: item.quantity,
     };
   });

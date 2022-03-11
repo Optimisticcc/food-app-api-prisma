@@ -28,7 +28,9 @@ export interface OrderItemITF {
 }
 
 export interface OrderItems {
-  productId: number;
+  product: {
+    id: number;
+  };
   quantity: number;
   code: string;
 }

@@ -2,7 +2,7 @@ import { ProductInput, ProductUpdate } from '../../interfaces';
 import { Prisma, PrismaClient } from '@prisma/client';
 import ApiError from '../../utils/api-error';
 import httpStatus from 'http-status';
-
+import { isEmpty } from 'lodash';
 const prisma = new PrismaClient();
 
 const createProduct = async (data: ProductInput) => {
@@ -26,6 +26,17 @@ const createProduct = async (data: ProductInput) => {
 };
 
 const updateProduct = async (id: number, data: ProductUpdate) => {
+  const productFound = await prisma.product.update({
+    where: {
+      id,
+    },
+    data: {
+      ProductCategory: {
+        disconnect: true,
+      },
+    },
+  });
+
   let dataAdd: Prisma.ProductUpdateInput = {
     code: data.code,
     name: data.name,
@@ -39,7 +50,14 @@ const updateProduct = async (id: number, data: ProductUpdate) => {
     where: {
       id,
     },
-    data: dataAdd,
+    data: {
+      ...dataAdd,
+      ProductCategory: {
+        connect: {
+          id: data.productCategoryId || productFound.productCategoryId,
+        },
+      },
+    },
   });
 };
 
@@ -127,7 +145,73 @@ const checkImageAlreadyUseWhenUpdate = async (
     }
   }
 };
+//
+const getAllProducts = async (query: any, cursor: any) => {
+  // -id,
+  // -quantitySold
+  //price
+  if (query && !isEmpty(query)) {
+    if (query.ProductCategory && query.price) {
+      return prisma.product.findMany({
+        include: {
+          ProductCategory: true,
+          images: true,
+        },
+        where: {
+          productCategoryId: +query.ProductCategory,
+          price: {
+            gte: +query.price['$gte'],
+            lte: +query.price['$lte'],
+          },
+        },
+      });
+    } else if (query.ProductCategory) {
+      return prisma.product.findMany({
+        include: {
+          ProductCategory: true,
+          images: true,
+        },
+        where: {
+          productCategoryId: +query.ProductCategory,
+        },
+      });
+    } else {
+      return prisma.product.findMany({
+        include: {
+          ProductCategory: true,
+          images: true,
+        },
+        where: {
+          price: {
+            gte: +query.price['$gte'],
+            lte: +query.price['$lte'],
+          },
+        },
+      });
+    }
+  } else {
+    return prisma.product.findMany({
+      include: {
+        ProductCategory: true,
+        images: true,
+      },
+    });
+  }
+};
 
+const getProductRelated = async (ProductCategory: number) => {
+  return prisma.product.findMany({
+    where: {
+      ProductCategory: {
+        id: +ProductCategory,
+      },
+    },
+    include: {
+      images: true,
+      ProductCategory: true,
+    },
+  });
+};
 export {
   createProduct,
   updateProduct,
@@ -136,4 +220,6 @@ export {
   checkImageAlreadyUseProduct,
   checkImageAlreadyUseWhenUpdate,
   getImagesOfProduct,
+  getAllProducts,
+  getProductRelated,
 };
