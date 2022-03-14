@@ -7,6 +7,7 @@ import {
   show,
   create,
   filterOrders,
+  momo,
 } from '../controllers/order.controller';
 
 // router
@@ -21,6 +22,8 @@ router.route('/').get(requireLogin, index).post(requireLogin, create);
 router.route('/filter').get(requireLogin, filterOrders);
 
 router.route('/:id').get(show);
+
+router.route('/momo').post(momo);
 // router.route('/send-mail-verify').post(sendVerificationEmail);
 
 // router.route('/verify-email/:token').get(verifyEmail);

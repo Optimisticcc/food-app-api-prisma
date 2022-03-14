@@ -4,7 +4,7 @@ import axiosClient from '../axios';
 import pkg from 'crypto-js';
 const { HmacSHA256 } = pkg;
 
-export const request_momo = async (orde: any) => {
+export const request_momo = async (order: any) => {
   console.log(env.momo.api_url);
   var partnerCode = env.momo.partner_code;
   var accessKey = env.momo.access_key;
@@ -12,14 +12,14 @@ export const request_momo = async (orde: any) => {
   // @ts-ignore
   var requestId = partnerCode + new Date().getTime();
   // @ts-ignore
-  var orderId = 'ORD-' + order._id;
+  var orderId = 'ORD-' + order.id;
   var orderInfo = 'paywithMoMo';
   var redirectUrl = process.env.WEB_URL + 'checkout/confirm';
   var ipnUrl = `${process.env.API_URL}api/donhangs/momo`;
   var payUrl = '';
   // var ipnUrl = redirectUrl = "https://webhook.site/454e7b77-f177-4ece-8236-ddf1c26ba7f8";
   // @ts-ignore
-  var amount = order.TongTien;
+  var amount = order.total;
   var requestType = 'captureWallet';
   var extraData = ''; //pass empty value if your merchant does not have stores
   //before sign HMAC SHA256 with format

@@ -4,7 +4,8 @@ import env from '../configs/env';
 const mailHost = 'smtp.gmail.com';
 const mailPort = 587;
 
-export const sendMail = (to: string, subject: string, text: string) => {
+export const sendMail = (job: any) => {
+  const {to, subject, message} = job
   const transporter = nodemailer.createTransport({
     host: mailHost,
     port: mailPort,
@@ -19,7 +20,7 @@ export const sendMail = (to: string, subject: string, text: string) => {
     from: env.emailAdmin, // địa chỉ admin email bạn dùng để gửi
     to: to, // địa chỉ gửi đến
     subject: subject, // Tiêu đề của mail
-    text: text,
+    html: message,
   };
   return transporter.sendMail(options);
 };

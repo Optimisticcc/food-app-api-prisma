@@ -19,6 +19,44 @@ const filterOrder = async (filter: Prisma.OrderWhereInput) => {
   });
 };
 
+const findOrder = async (id: number) => {
+  return prisma.order.findFirst({
+    where: { id: +id },
+    include: {
+      Customer: true,
+      orderItems: {
+        include: {
+          Product: true,
+        },
+      },
+      user: true,
+      paymentDetail: true,
+      discount: true,
+    },
+  });
+};
+
+const findOrderByID = async (orderId: number) => {
+  return prisma.order.findFirst({
+    where: { id: +orderId },
+    include: {
+      Customer: true,
+      orderItems: {
+        include: {
+          Product: {
+            include: {
+              images: true,
+            },
+          },
+        },
+      },
+      user: true,
+      paymentDetail: true,
+      discount: true,
+    },
+  });
+};
+
 const createOrder = async (order: OrderInput) => {
   let data: Prisma.OrderCreateInput = {
     address: order.address,
@@ -48,9 +86,10 @@ const createOrder = async (order: OrderInput) => {
       connect: { id: order.userId },
     };
   }
+  console.log('🚀 ~ file: index.ts ~ line 64 ~ createOrder ~ data', data);
   return prisma.order.create({
     data,
   });
 };
 
-export { filterOrder, createOrder };
+export { filterOrder, createOrder, findOrderByID, findOrder };

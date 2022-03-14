@@ -35,7 +35,7 @@ model Product {
   price             Decimal
   description       String?          @db.VarChar(8000)
   quantity          Int
-  quantitySold      Int
+  quantitySold      Int              
   code              String           @unique
   updatedAt         DateTime         @updatedAt
   createdAt         DateTime         @default(now())

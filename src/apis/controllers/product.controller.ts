@@ -33,10 +33,6 @@ const index = catchAsync(async (req: Request, res: Response) => {
   const perPageNum = parseInt(pageSize as string) || 10;
   let result = products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum);
   let data;
-  console.log(
-    '🚀 ~ file: product.controller.ts ~ line 44 ~ index ~ req.querymen.cursor',
-    req.querymen.cursor
-  );
   if (req.querymen.cursor.sort.hasOwnProperty('name')) {
     data = orderBy(
       result,
@@ -44,12 +40,6 @@ const index = catchAsync(async (req: Request, res: Response) => {
       req.querymen.cursor.sort.name === 1 ? ['asc'] : ['desc']
     );
   } else if (req.querymen.cursor.sort.hasOwnProperty('price')) {
-    console.log(
-      '🚀 ~ file: product.controller.ts ~ line 44 ~ index ~ req.querymen.cursor',
-      req.querymen.cursor.price
-    );
-    console.log('Price');
-
     data = orderBy(
       result,
       ['price'],

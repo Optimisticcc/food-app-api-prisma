@@ -207,10 +207,6 @@ const remove = catchAsync(async (req: Request, res: Response) => {
 const userInfo = catchAsync(async (req: Request, res: Response) => {
   try {
     const user = req.user as Customer;
-    console.log(
-      '🚀 ~ file: customer.controller.ts ~ line 207 ~ userInfo ~ user',
-      user
-    );
     if (user.status) {
       return res.status(httpStatus.OK).json(user);
     }

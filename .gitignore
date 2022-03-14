@@ -2,6 +2,7 @@ node_modules
 # Keep environment variables out of version control
 .DS_Store
 .idea
+.env
 #jwtRS256.key
 #jwtRS256.key.pub
 /prisma/migrations/
