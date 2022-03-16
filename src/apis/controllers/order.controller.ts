@@ -108,12 +108,12 @@ const create = catchAsync(async (req: Request, res: Response) => {
     if (req.body.items && req.body.items.length > 0) {
       console.log(
         '🚀 ~ file: order.controller.ts ~ line 109 ~ create ~ req.body.items',
-        req.body.items
+        req.body.items,req.body.items.map((i: any) => +i.product)
       );
       const products = await prisma.product.findMany({
         where: {
           id: {
-            in: req.body.items.map((i: any) => +i.product.id),
+            in: req.body.items.map((i: any) => +i.product),
           },
         },
         select: {
@@ -123,19 +123,20 @@ const create = catchAsync(async (req: Request, res: Response) => {
           price: true,
         },
       });
+      console.log(products, "products")
       if (products && products.length > 0) {
         let notice = '';
 
         let count = 0;
 
         for (const [index, item] of req.body.items.entries()) {
-          const p = products.find((i) => i.id === item.product.id);
+          const p = products.find((i) => i.id === item.product);
 
           if (!p) {
             count = count + 1;
             notice =
               notice +
-              `Không tìm thấy sản phẩm có id bằng ${item.product.code}\n`;
+              `Không tìm thấy sản phẩm có id bằng ${item.product}\n`;
           } else if (p.quantity < 1) {
             count = count + 1;
             notice = notice + `Sản phẩm có id bằng ${p.code} đã hết hàng\n`;

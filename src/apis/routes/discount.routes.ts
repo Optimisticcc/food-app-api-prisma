@@ -8,11 +8,12 @@ import {
   update,
   remove,
   show,
+  getDisCountByCode
 } from '../controllers/discount.controller';
 import { requireLogin, requireEmployee } from '../../middlewares/requireUser';
 
 router.route('/').get(index).post(requireLogin, create);
-
+router.route('/get-by-code/:code').get(requireLogin,getDisCountByCode)
 router
   .route('/:id')
   .get(show)

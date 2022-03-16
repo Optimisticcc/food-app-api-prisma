@@ -29,12 +29,12 @@ const index = catchAsync(async (req: Request, res: Response) => {
 const show = catchAsync(async (req: Request, res: Response) => {
   const discount = await prisma.discount.findFirst({
     where: {
-      id: Number(req.params.id),
+      id: Number(req.params.id)
     },
     include: {
       Order: true,
     },
-  });
+  })
   if (!discount) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
       message: 'Get one discount failed',
@@ -43,6 +43,25 @@ const show = catchAsync(async (req: Request, res: Response) => {
   }
   return res.status(httpStatus.OK).json({
     message: 'get one discount successfully',
+    data: discount,
+    success: true,
+  });
+});
+
+const getDisCountByCode = catchAsync(async (req: Request, res: Response) => {
+  const discount = await prisma.discount.findFirst({
+    where: {
+     code: (req.params.code)
+    },
+  })
+  if (!discount) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      message: 'Get one discount by code failed',
+      success: false,
+    });
+  }
+  return res.status(httpStatus.OK).json({
+    message: 'get one discount by code successfully',
     data: discount,
     success: true,
   });
@@ -96,4 +115,5 @@ const remove = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export { index, create, update, remove, show };
+
+export { index, create, update, remove, show,getDisCountByCode };

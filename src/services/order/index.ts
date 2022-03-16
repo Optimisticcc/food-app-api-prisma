@@ -58,7 +58,8 @@ const findOrderByID = async (orderId: number) => {
 };
 
 const createOrder = async (order: OrderInput) => {
-  let data: Prisma.OrderCreateInput = {
+  console.log("Order ",order)
+  let dataAdd: Prisma.OrderCreateInput = {
     address: order.address,
     email: order.email,
     phoneNumber: order.phoneNumber,
@@ -66,30 +67,34 @@ const createOrder = async (order: OrderInput) => {
     total: order.total,
     orderStatus: order.orderStatus || false,
   };
-  data.Customer = {
-    connect: { id: order.customerId },
-  };
+  // dataAdd.Customer = {
+  //   connect: { id: +order.customerId },
+  // };
+  // console.log('AAAAAAAAAAAAAA')
+  // if (order.discountId) {
+  //   dataAdd.discount = {
+  //     connect: { id: +order.discountId },
+  //   };
+  // } else {
+  //   const codeDiscount = (await getDiscountDefault()) as Discount;
+  //   dataAdd.discount = {
+  //     connect: { id: +codeDiscount.id },
+  //   };
+  // }
 
-  let codeDiscount;
-  if (order.code) {
-    codeDiscount = (await getDiscountByCode(order.code)) as Discount;
-  } else {
-    codeDiscount = (await getDiscountDefault()) as Discount;
-  }
+ 
 
-  data.discount = {
-    connect: { id: codeDiscount.id },
-  };
-
-  if (order.userId) {
-    data.user = {
-      connect: { id: order.userId },
-    };
-  }
-  console.log('🚀 ~ file: index.ts ~ line 64 ~ createOrder ~ data', data);
-  return prisma.order.create({
-    data,
+  // if (order.userId) {
+  //   dataAdd.user = {
+  //     connect: { id: order.userId },
+  //   };
+  // }
+  console.log('🚀 ~ file: index.ts ~ line 92 ~ createOrder ~ data', dataAdd);
+  const oderCreate = await prisma.order.create({
+    data: dataAdd
   });
+  console.log('🚀 ~ file: index.ts ~ line 95 ~ createOrder ~ data', oderCreate);
+  return oderCreate
 };
 
 export { filterOrder, createOrder, findOrderByID, findOrder };

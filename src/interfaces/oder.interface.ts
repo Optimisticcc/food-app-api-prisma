@@ -8,6 +8,7 @@ export interface OrderInput {
   email: string;
   customerId: number;
   userId?: number;
+  discountId?: number;
 }
 
 export interface PaymentUpSert {
