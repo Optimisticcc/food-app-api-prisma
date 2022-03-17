@@ -14,7 +14,7 @@ const filterOrder = async (filter: Prisma.OrderWhereInput) => {
       orderItems: true,
       user: true,
       PaymentDetail: true,
-      Discount: true,
+      discount: true,
     },
   });
 };
@@ -31,7 +31,7 @@ const findOrder = async (id: number) => {
       },
       user: true,
       PaymentDetail: true,
-      Discount: true,
+      discount: true,
     },
   });
 };
@@ -52,7 +52,7 @@ const findOrderByID = async (orderId: number) => {
       },
       user: true,
       PaymentDetail: true,
-      Discount: true,
+      discount: true,
     },
   });
 };
@@ -81,7 +81,13 @@ const createOrder = async (order: OrderInput) => {
     })
     if (discount){
       totalFUll = Number(discount.discountPercent) > 0 ? totalFUll - totalFUll*Number(discount.discountPercent): totalFUll
+      dataAdd.discount = {
+        connect: {
+          id: discount.id
+        }
+      }
     }
+    
   }
  
   if (order.userId) {

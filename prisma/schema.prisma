@@ -51,6 +51,7 @@ model Discount {
   code            String   @unique
   discountPercent Decimal  @default(0) @db.Decimal(10, 2)
   isActive        Boolean? @default(true) @db.Bit
+  startDate       DateTime
   expirationDate  DateTime
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())

@@ -87,7 +87,7 @@ const show = catchAsync(async (req: Request, res: Response) => {
       orderItems: true,
       user: true,
       PaymentDetail: true,
-      Discount: true,
+     discount: true
     },
   });
   if (!order) {
@@ -168,7 +168,7 @@ const createByAdmin = catchAsync(async (req: Request, res: Response) => {
     if (order) {
       const payment = await createPaymentDetail(order.id, {
         ...req.body,
-        amount: total
+        amount: order.total
       });
       await createOrderItem(order.id, req.body.items)
       await findOrderByID(order.id).then(ressult =>{
