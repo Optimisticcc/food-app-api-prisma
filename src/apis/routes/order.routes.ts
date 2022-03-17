@@ -8,6 +8,7 @@ import {
   create,
   filterOrders,
   momo,
+  createByAdmin
 } from '../controllers/order.controller';
 
 // router
@@ -20,6 +21,7 @@ import {
 
 router.route('/').get(requireLogin, index).post(requireLogin, create);
 router.route('/filter').get(requireLogin, filterOrders);
+router.route('/create').post(requireLogin,createByAdmin)
 
 router.route('/:id').get(show);
 

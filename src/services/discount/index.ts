@@ -8,7 +8,6 @@ const createDiscount = async (data: DiscountInput) => {
   let dataAdd: Prisma.DiscountCreateInput = {
     code: data.code,
     discountPercent: data.discountPercent || 0,
-    startDate: data.startDate,
     expirationDate: data.expirationDate,
     isActive: data.isActive,
   };
@@ -34,8 +33,7 @@ const updateDiscount = async (id: number, data: DiscountUpdate) => {
     code: data.code,
     discountPercent: data.discountPercent,
     expirationDate: data.expirationDate,
-    isActive: data.isActive,
-    startDate: data.startDate,
+    isActive: data.isActive
   };
   return prisma.discount.update({
     where: {

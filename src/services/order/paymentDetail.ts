@@ -10,11 +10,7 @@ const createPaymentDetail = async (orderId: number, args: PaymentInput) => {
       amount: args.amount || 0,
       paymentType: args.paymentType || 'cod',
       paymentStatus: args.paymentStatus || false,
-      Order: {
-        connect: {
-          id: +orderId,
-        },
-      },
+     orderId: orderId
     },
   });
 };

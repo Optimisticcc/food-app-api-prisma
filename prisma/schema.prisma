@@ -32,10 +32,10 @@ model BlogCategory {
 model Product {
   id                Int              @id @default(autoincrement())
   name              String
-  price             Decimal
+  price             Decimal          @db.Decimal(10, 2)
   description       String?          @db.VarChar(8000)
   quantity          Int
-  quantitySold      Int              
+  quantitySold      Int
   code              String           @unique
   updatedAt         DateTime         @updatedAt
   createdAt         DateTime         @default(now())
@@ -48,13 +48,13 @@ model Product {
 model Discount {
   id              Int      @id @default(autoincrement())
   code            String   @unique
-  discountPercent Decimal  @default(0)
+  discountPercent Decimal  @default(0) @db.Decimal(10, 2)
   isActive        Boolean? @default(true) @db.Bit
-  startDate       DateTime
   expirationDate  DateTime
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())
-  Order           Order?
+  order           Order?   @relation(fields: [orderId], references: [id])
+  orderId         Int?     @unique
 }
 
 model Image {
@@ -124,24 +124,22 @@ model User {
 }
 
 model Order {
-  id              Int            @id @default(autoincrement())
-  total           Decimal?       @default(0)
-  note            String?
-  orderStatus     Boolean        @default(false) @db.Bit
-  address         String
-  phoneNumber     String
-  email           String
-  dateCompleted   DateTime?
-  createdAt       DateTime       @default(now())
-  orderItems      OrderItem[]
-  user            User?          @relation(fields: [userId], references: [id])
-  userId          Int?
-  Customer        Customer?      @relation(fields: [customerId], references: [id])
-  customerId      Int?
-  paymentDetail   PaymentDetail? @relation(fields: [paymentDetailId], references: [id])
-  paymentDetailId Int?           @unique
-  discount        Discount?      @relation(fields: [discountId], references: [id])
-  discountId      Int?           @unique
+  id            Int            @id @default(autoincrement())
+  total         Decimal        @default(0) @db.Decimal(10, 2)
+  note          String?
+  orderStatus   Boolean        @default(false) @db.Bit
+  address       String
+  phoneNumber   String
+  email         String
+  dateCompleted DateTime?
+  createdAt     DateTime       @default(now())
+  orderItems    OrderItem[]
+  user          User?          @relation(fields: [userId], references: [id])
+  userId        Int?
+  Customer      Customer?      @relation(fields: [customerId], references: [id])
+  customerId    Int?
+  Discount      Discount?
+  PaymentDetail PaymentDetail?
 }
 
 model OrderItem {
@@ -157,12 +155,13 @@ model OrderItem {
 
 model PaymentDetail {
   id            Int      @id @default(autoincrement())
-  amount        Decimal
+  amount        Decimal  @db.Decimal(10, 2)
   paymentType   String
   paymentStatus Boolean  @default(false) @db.Bit
   updatedAt     DateTime @updatedAt
   createdAt     DateTime @default(now())
-  Order         Order?
+  order         Order?   @relation(fields: [orderId], references: [id])
+  orderId       Int?     @unique
 }
 
 model PermisionRelationship {

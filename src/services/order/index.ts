@@ -13,8 +13,8 @@ const filterOrder = async (filter: Prisma.OrderWhereInput) => {
       Customer: true,
       orderItems: true,
       user: true,
-      paymentDetail: true,
-      discount: true,
+      PaymentDetail: true,
+      Discount: true,
     },
   });
 };
@@ -30,8 +30,8 @@ const findOrder = async (id: number) => {
         },
       },
       user: true,
-      paymentDetail: true,
-      discount: true,
+      PaymentDetail: true,
+      Discount: true,
     },
   });
 };
@@ -51,8 +51,8 @@ const findOrderByID = async (orderId: number) => {
         },
       },
       user: true,
-      paymentDetail: true,
-      discount: true,
+      PaymentDetail: true,
+      Discount: true,
     },
   });
 };
@@ -67,34 +67,27 @@ const createOrder = async (order: OrderInput) => {
     total: order.total,
     orderStatus: order.orderStatus || false,
   };
-  // dataAdd.Customer = {
-  //   connect: { id: +order.customerId },
-  // };
-  // console.log('AAAAAAAAAAAAAA')
-  // if (order.discountId) {
-  //   dataAdd.discount = {
-  //     connect: { id: +order.discountId },
-  //   };
-  // } else {
-  //   const codeDiscount = (await getDiscountDefault()) as Discount;
-  //   dataAdd.discount = {
-  //     connect: { id: +codeDiscount.id },
-  //   };
-  // }
-
+  if (order.customerId){
+    dataAdd.Customer = {
+      connect: { id: +order.customerId },
+    };
+  }
  
-
-  // if (order.userId) {
-  //   dataAdd.user = {
-  //     connect: { id: order.userId },
-  //   };
-  // }
-  console.log('🚀 ~ file: index.ts ~ line 92 ~ createOrder ~ data', dataAdd);
-  const oderCreate = await prisma.order.create({
-    data: dataAdd
-  });
-  console.log('🚀 ~ file: index.ts ~ line 95 ~ createOrder ~ data', oderCreate);
-  return oderCreate
+  if (order.userId) {
+    dataAdd.user = {
+      connect: { id: order.userId },
+    };
+  }
+  try {
+    const oderCreate = await prisma.order.create({
+      data: dataAdd
+    });
+    console.log("ORder create",oderCreate)
+    return oderCreate
+  } catch (error) {
+    console.log({error})
+  }
+  return undefined
 };
 
 export { filterOrder, createOrder, findOrderByID, findOrder };

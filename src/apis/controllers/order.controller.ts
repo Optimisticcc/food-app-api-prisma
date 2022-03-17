@@ -37,8 +37,8 @@ const index = catchAsync(async (req: Request, res: Response) => {
         },
       },
       user: true,
-      paymentDetail: true,
-      discount: true,
+     PaymentDetail: true,
+      Discount: true,
     },
   });
 
@@ -86,8 +86,8 @@ const show = catchAsync(async (req: Request, res: Response) => {
       Customer: true,
       orderItems: true,
       user: true,
-      paymentDetail: true,
-      discount: true,
+      PaymentDetail: true,
+      Discount: true,
     },
   });
   if (!order) {
@@ -103,12 +103,14 @@ const show = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const create = catchAsync(async (req: Request, res: Response) => {
+const createByAdmin = catchAsync(async (req: Request, res: Response) => {
   try {
+    let total = 0;
     if (req.body.items && req.body.items.length > 0) {
       console.log(
         '🚀 ~ file: order.controller.ts ~ line 109 ~ create ~ req.body.items',
-        req.body.items,req.body.items.map((i: any) => +i.product)
+        req.body.items,
+        req.body.items.map((i: any) => +i.product)
       );
       const products = await prisma.product.findMany({
         where: {
@@ -123,7 +125,7 @@ const create = catchAsync(async (req: Request, res: Response) => {
           price: true,
         },
       });
-      console.log(products, "products")
+      console.log(products, 'products');
       if (products && products.length > 0) {
         let notice = '';
 
@@ -135,8 +137,111 @@ const create = catchAsync(async (req: Request, res: Response) => {
           if (!p) {
             count = count + 1;
             notice =
-              notice +
-              `Không tìm thấy sản phẩm có id bằng ${item.product}\n`;
+              notice + `Không tìm thấy sản phẩm có id bằng ${item.product}\n`;
+          } else if (p.quantity < 1) {
+            count = count + 1;
+            notice = notice + `Sản phẩm có id bằng ${p.code} đã hết hàng\n`;
+          } else if (p.quantity < item.quantity) {
+            count = count + 1;
+            notice =
+              notice + `Sản phẩm có id bằng ${p.code} không đủ số lượng \n`;
+          } else {
+            req.body.items[index].product = p;
+            total += Number(p.price)*item.quantity
+          }
+        }
+        if (count > 0) {
+          return res.status(500).json({ message: notice });
+        }
+      } else {
+        return res
+          .status(500)
+          .json({ message: 'Không tìm thấy sản phẩm nào phù hợp' });
+      }
+    }
+    // req.body.items
+    const order = await createOrder({
+      ...req.body,
+      total: total
+    });
+
+    if (order) {
+      const payment = await createPaymentDetail(order.id, {
+        ...req.body,
+        amount: total
+      });
+      await createOrderItem(order.id, req.body.items)
+      await findOrderByID(order.id).then(ressult =>{
+        return res.status(httpStatus.OK).json({ ressult });
+      })
+     
+      // .then(async (result) => {
+      //   const adminTitle = 'New order from Fast Food';
+      //   // @ts-ignore
+      //   await sendMail({
+      //     to: result.newData?.email,
+      //     subject: `New order from Vegelite [${result.newData.id}]`,
+      //     message: pug.renderFile(`${__dirname}\\template.pug`, {
+      //       title: adminTitle,
+      //       order: result.newData,
+      //       shopName: 'Vegelite',
+      //     }),
+      //   });
+      //   if (result.payUrl) {
+      //     // await updatePayment(payment.id,)
+      //   }
+
+      //   return result;
+      // })
+      // .then((data) => {
+      //   return res.status(httpStatus.OK).json({ data });
+      // })
+      // .catch((err: any) => {
+      //   return res.status(500).json({ message: err.message });
+      // });
+    }
+  } catch (error: any) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      message: error.message,
+      success: false,
+    });
+  }
+});
+
+const create = catchAsync(async (req: Request, res: Response) => {
+  try {
+    if (req.body.items && req.body.items.length > 0) {
+      console.log(
+        '🚀 ~ file: order.controller.ts ~ line 109 ~ create ~ req.body.items',
+        req.body.items,
+        req.body.items.map((i: any) => +i.product)
+      );
+      const products = await prisma.product.findMany({
+        where: {
+          id: {
+            in: req.body.items.map((i: any) => +i.product),
+          },
+        },
+        select: {
+          code: true,
+          id: true,
+          quantity: true,
+          price: true,
+        },
+      });
+      console.log(products, 'products');
+      if (products && products.length > 0) {
+        let notice = '';
+
+        let count = 0;
+
+        for (const [index, item] of req.body.items.entries()) {
+          const p = products.find((i) => i.id === item.product);
+
+          if (!p) {
+            count = count + 1;
+            notice =
+              notice + `Không tìm thấy sản phẩm có id bằng ${item.product}\n`;
           } else if (p.quantity < 1) {
             count = count + 1;
             notice = notice + `Sản phẩm có id bằng ${p.code} đã hết hàng\n`;
@@ -337,4 +442,4 @@ const momo = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export { index, show, create, filterOrders, momo };
+export { index, show, create, filterOrders, momo,createByAdmin };
