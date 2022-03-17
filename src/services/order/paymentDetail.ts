@@ -9,27 +9,24 @@ const createPaymentDetail = async (orderId: number, args: PaymentInput) => {
     data: {
       amount: args.amount || 0,
       paymentType: args.paymentType || 'cod',
-      paymentStatus: args.paymentStatus || false,
-     orderId: orderId
+      paymentStatus: args.paymentStatus ? true : false,
+      orderId: orderId,
     },
   });
 };
 
-const updatePayment = async (
-  paymentId: number,
-  args: PaymentUpSert
-) => {
-    const payMent = await prisma.paymentDetail.findFirst({
-      where: { id: +paymentId },
-    });
-    return prisma.paymentDetail.update({
-      where: { id: +paymentId },
-      data: {
-        amount: args.amount || payMent?.amount,
-        paymentType: args.paymentType || payMent?.paymentType,
-        paymentStatus: args.paymentStatus || payMent?.paymentStatus,
-      },
-    });
+const updatePayment = async (paymentId: number, args: PaymentUpSert) => {
+  const payMent = await prisma.paymentDetail.findFirst({
+    where: { id: +paymentId },
+  });
+  return prisma.paymentDetail.update({
+    where: { id: +paymentId },
+    data: {
+      amount: args.amount || payMent?.amount,
+      paymentType: args.paymentType || payMent?.paymentType,
+      paymentStatus: args.paymentStatus || payMent?.paymentStatus,
+    },
+  });
 };
 
 const findFirstPaymentDetail = async (id: number) => {

@@ -3,6 +3,7 @@ export interface DiscountInput {
   discountPercent: number;
   isActive?: boolean;
   expirationDate: string;
+  startDate: string;
 }
 
 export interface DiscountUpdate {
@@ -10,4 +11,5 @@ export interface DiscountUpdate {
   discountPercent?: number;
   isActive?: boolean;
   expirationDate?: string;
+  startDate?: string;
 }

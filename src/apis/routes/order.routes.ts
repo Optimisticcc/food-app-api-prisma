@@ -9,6 +9,7 @@ import {
   filterOrders,
   momo,
   createByAdmin,
+  remove,
 } from '../controllers/order.controller';
 
 // router
@@ -22,26 +23,7 @@ import { middleware as query } from '../../utils/querymen';
 router.route('/').get(requireLogin, index).post(requireLogin, create);
 router.route('/filter').get(requireLogin, query(), filterOrders);
 router.route('/create').post(requireLogin, createByAdmin);
-
-router.route('/:id').get(show);
-
 router.route('/momo').post(momo);
-// router.route('/send-mail-verify').post(sendVerificationEmail);
-
-// router.route('/verify-email/:token').get(verifyEmail);
-
-// router
-//   .route('/verify-account-create-by-admin')
-//   .post(verifyAccountCreateByAdminHandler);
-
-// router.route('/send-email-forgot-password').post(forgotPassword);
-
-// router.route('/reset-password/:token').post(resetPasswordHandler);
-
-// router.route('/get-roles').get(requireUser, getUserRole);
-
-// router.route('/change-password').post(requireUser, changePasswordHandler);
-
-// router.route('/get-cats-of-user').get(requireUser, getCatsOfUser);
+router.route('/:id').get(show).delete(requireLogin, remove);
 
 export default router;

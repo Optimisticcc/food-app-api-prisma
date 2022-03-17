@@ -66,7 +66,7 @@ const createOrder = async (order: OrderInput) => {
     email: order.email,
     phoneNumber: order.phoneNumber,
     note: order.note || '',
-    orderStatus: order.orderStatus || false,
+    orderStatus: order.orderStatus ? true : false,
   };
   if (order.customerId) {
     dataAdd.Customer = {
@@ -80,10 +80,14 @@ const createOrder = async (order: OrderInput) => {
         id: order.discountId,
       },
     });
+    console.log("🚀 ~ file: index.ts ~ line 83 ~ createOrder ~ discount", discount)
     if (discount) {
       totalFUll =
-        Number(discount.discountPercent) > 0
-          ? totalFUll - totalFUll * Number(discount.discountPercent)
+        discount.code !== 'ZERO' &&
+        Number(discount.discountPercent) > 0 &&
+        discount.isActive
+          ? totalFUll -
+            Math.round((totalFUll * Number(discount.discountPercent)) / 100)
           : totalFUll;
       dataAdd.discount = {
         connect: {
@@ -92,7 +96,10 @@ const createOrder = async (order: OrderInput) => {
       };
     }
   }
-
+  console.log(
+    '🚀 ~ file: index.ts ~ line 113 ~ createOrder ~ totalFUll',
+    totalFUll
+  );
   if (order.userId) {
     dataAdd.user = {
       connect: { id: order.userId },

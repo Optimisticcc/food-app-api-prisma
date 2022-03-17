@@ -127,6 +127,7 @@ const show = catchAsync(async (req: Request, res: Response) => {
 const createByAdmin = catchAsync(async (req: Request, res: Response) => {
   try {
     let total = 0;
+
     if (req.body.items && req.body.items.length > 0) {
       console.log(
         '🚀 ~ file: order.controller.ts ~ line 109 ~ create ~ req.body.items',
@@ -180,15 +181,21 @@ const createByAdmin = catchAsync(async (req: Request, res: Response) => {
       }
     }
     // req.body.items
+    console.log(
+      '🚀 ~ file: order.controller.ts ~ line 187 ~ createByAdmin ~ req.body',
+      req.body.discountId
+    );
     const order = await createOrder({
       ...req.body,
-      total: total,
+
+      total,
     });
 
     if (order) {
       await createPaymentDetail(order.id, {
-        ...req.body,
-        amount: order.total,
+        paymentStatus: req.body.paymentStatus,
+        paymentType: req.body.paymentType,
+        amount: Number(order.total),
       });
       await createOrderItem(order.id, req.body.items);
       await findOrderByID(order.id).then((ressult) => {
@@ -271,6 +278,7 @@ const create = catchAsync(async (req: Request, res: Response) => {
               notice + `Sản phẩm có id bằng ${p.code} không đủ số lượng \n`;
           } else {
             req.body.items[index].product = p;
+            total += Number(p.price) * item.quantity;
           }
         }
         if (count > 0) {
@@ -403,21 +411,31 @@ const update = catchAsync(async (req: Request, res: Response) => {
   // });
 });
 
-// const remove = catchAsync(async (req: Request, res: Response) => {
-//   const product = await prisma.product.delete({
-//     where: { id: +req.params.id },
-//   });
-//   if (!product) {
-//     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-//       message: 'delete product failed',
-//       success: false,
-//     });
-//   }
-//   return res.status(httpStatus.OK).json({
-//     message: 'delete product category successfully',
-//     success: true,
-//   });
-// });
+const remove = catchAsync(async (req: Request, res: Response) => {
+  await prisma.orderItem.deleteMany({
+    where: {
+      orderId: +req.params.id,
+    },
+  });
+  await prisma.paymentDetail.delete({
+    where: {
+      orderId: +req.params.id,
+    },
+  });
+  const order = await prisma.order.delete({
+    where: { id: +req.params.id },
+  });
+  if (!order) {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+      message: 'delete order failed',
+      success: false,
+    });
+  }
+  return res.status(httpStatus.OK).json({
+    message: 'delete order successfully',
+    success: true,
+  });
+});
 
 const momo = catchAsync(async (req: Request, res: Response) => {
   try {
@@ -467,4 +485,4 @@ const momo = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export { index, show, create, filterOrders, momo, createByAdmin };
+export { index, show, create, filterOrders, momo, createByAdmin, remove };
