@@ -58,7 +58,8 @@ const findOrderByID = async (orderId: number) => {
 };
 
 const createOrder = async (order: OrderInput) => {
-  console.log('Order ', order);
+  console.log('🚀 ~ file: index.ts ~ line 61 ~ createOrder ~ order', order);
+
   let totalFUll = order.total;
   let dataAdd: Prisma.OrderCreateInput = {
     address: order.address,

@@ -8,7 +8,7 @@ import {
   create,
   filterOrders,
   momo,
-  createByAdmin
+  createByAdmin,
 } from '../controllers/order.controller';
 
 // router
@@ -18,10 +18,10 @@ import {
 // router.route('/signUp').post(signUp, sendVerificationEmail);
 
 // router.route('/logout').get(requireUser, logout);
-
+import { middleware as query } from '../../utils/querymen';
 router.route('/').get(requireLogin, index).post(requireLogin, create);
-router.route('/filter').get(requireLogin, filterOrders);
-router.route('/create').post(requireLogin,createByAdmin)
+router.route('/filter').get(requireLogin, query(), filterOrders);
+router.route('/create').post(requireLogin, createByAdmin);
 
 router.route('/:id').get(show);
 

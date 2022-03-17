@@ -58,7 +58,6 @@ const index = catchAsync(async (req: Request, res: Response) => {
     totalPage: Math.ceil(products.length / perPageNum),
     pageSize: perPageNum,
     pageNo: pageNum,
-    // pageNo: Math.floor(skip / perPageNum) + 1,
   });
 });
 
@@ -176,9 +175,10 @@ const update = catchAsync(async (req: Request, res: Response) => {
 //     image: 0,
 const remove = catchAsync(async (req: Request, res: Response) => {
   const product = await prisma.product.update({
-    where: { id: +req.params.id },data: {
-      isActive: false
-    }
+    where: { id: +req.params.id },
+    data: {
+      isActive: false,
+    },
   });
 
   if (!product) {
@@ -193,11 +193,4 @@ const remove = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export {
-  index,
-  create,
-  update,
-  remove,
-  show,
-  getAllProductByCategory,
-};
+export { index, create, update, remove, show, getAllProductByCategory };

@@ -12,7 +12,6 @@ import {
   filterOrder,
   createOrderItem,
   findOrderByID,
-  upsertPayment,
   createPaymentDetail,
   findOrder,
   updatePayment,
@@ -21,7 +20,6 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { getDiscountByCode } from '../../services';
 import { request_momo } from '../../services/momo';
 import pug from 'pug';
-import { PaymentInput } from 'src/interfaces';
 
 const prisma = new PrismaClient();
 const index = catchAsync(async (req: Request, res: Response) => {
@@ -39,7 +37,7 @@ const index = catchAsync(async (req: Request, res: Response) => {
       },
       user: true,
       PaymentDetail: true,
-      Discount: true,
+      discount: true,
     },
   });
 
@@ -63,19 +61,41 @@ const index = catchAsync(async (req: Request, res: Response) => {
 // Limit là số data 1 trang
 // Skip là bỏ qua bnh dữ liệu
 const filterOrders = catchAsync(async (req: Request, res: Response) => {
-  const orders = await filterOrder(req.body);
-  const { pageNo, pageSize } = req.query;
-  const pageNum = parseInt(pageNo as string) || 1;
-  const perPageNum = parseInt(pageSize as string) || 10;
-
-  return res.status(httpStatus.OK).json({
-    data: orders.slice((pageNum - 1) * perPageNum, pageNum * perPageNum),
-    totalCount: orders.length,
-    totalPage: Math.ceil(orders.length / perPageNum),
-    pageSize: perPageNum,
-    pageNo: pageNum,
-    // pageNo: Math.floor(skip / perPageNum) + 1,
-  });
+  // const orders = await getAllProducts(
+  //   req.querymen.query,
+  //   req.querymen.cursor
+  // );
+  // const { pageNo, pageSize } = req.query;
+  // const pageNum = parseInt(pageNo as string) || 1;
+  // const perPageNum = parseInt(pageSize as string) || 10;
+  // let result = products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum);
+  // let data;
+  // if (req.querymen.cursor.sort.hasOwnProperty('name')) {
+  //   data = orderBy(
+  //     result,
+  //     ['name'],
+  //     req.querymen.cursor.sort.name === 1 ? ['asc'] : ['desc']
+  //   );
+  // } else if (req.querymen.cursor.sort.hasOwnProperty('price')) {
+  //   data = orderBy(
+  //     result,
+  //     ['price'],
+  //     req.querymen.cursor.sort.price === 1 ? ['asc'] : ['desc']
+  //   );
+  // } else if (req.querymen.cursor.sort.hasOwnProperty('quantitySold')) {
+  //   data = orderBy(result, ['quantitySold'], ['desc']);
+  // } else if (req.querymen.cursor.sort.hasOwnProperty('id')) {
+  //   data = orderBy(result, ['id'], ['desc']);
+  // } else {
+  //   data = orderBy(result, ['createdAt'], ['desc']);
+  // }
+  // return res.status(httpStatus.OK).json({
+  //   data: data,
+  //   totalCount: products.length,
+  //   totalPage: Math.ceil(products.length / perPageNum),
+  //   pageSize: perPageNum,
+  //   pageNo: pageNum,
+  // });
 });
 
 const show = catchAsync(async (req: Request, res: Response) => {
@@ -209,6 +229,7 @@ const createByAdmin = catchAsync(async (req: Request, res: Response) => {
 
 const create = catchAsync(async (req: Request, res: Response) => {
   try {
+    let total = 0;
     if (req.body.items && req.body.items.length > 0) {
       console.log(
         '🚀 ~ file: order.controller.ts ~ line 109 ~ create ~ req.body.items',
@@ -264,10 +285,11 @@ const create = catchAsync(async (req: Request, res: Response) => {
     // req.body.items
     const order = await createOrder({
       ...req.body,
+      total,
     });
     const payment = await createPaymentDetail(order.id, {
       ...req.body,
-      amount: req.body.total,
+      amount: order.total,
     });
     await createOrderItem(order.id, req.body.items);
     await findOrderByID(order.id)
