@@ -15,6 +15,7 @@ import {
   upsertPayment,
   createPaymentDetail,
   findOrder,
+  updatePayment,
 } from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { getDiscountByCode } from '../../services';
@@ -37,7 +38,7 @@ const index = catchAsync(async (req: Request, res: Response) => {
         },
       },
       user: true,
-     PaymentDetail: true,
+      PaymentDetail: true,
       Discount: true,
     },
   });
@@ -87,7 +88,7 @@ const show = catchAsync(async (req: Request, res: Response) => {
       orderItems: true,
       user: true,
       PaymentDetail: true,
-     discount: true
+      discount: true,
     },
   });
   if (!order) {
@@ -125,7 +126,6 @@ const createByAdmin = catchAsync(async (req: Request, res: Response) => {
           price: true,
         },
       });
-      console.log(products, 'products');
       if (products && products.length > 0) {
         let notice = '';
 
@@ -147,7 +147,7 @@ const createByAdmin = catchAsync(async (req: Request, res: Response) => {
               notice + `Sản phẩm có id bằng ${p.code} không đủ số lượng \n`;
           } else {
             req.body.items[index].product = p;
-            total += Number(p.price)*item.quantity
+            total += Number(p.price) * item.quantity;
           }
         }
         if (count > 0) {
@@ -162,19 +162,18 @@ const createByAdmin = catchAsync(async (req: Request, res: Response) => {
     // req.body.items
     const order = await createOrder({
       ...req.body,
-      total: total
+      total: total,
     });
 
     if (order) {
-      const payment = await createPaymentDetail(order.id, {
+      await createPaymentDetail(order.id, {
         ...req.body,
-        amount: order.total
+        amount: order.total,
       });
-      await createOrderItem(order.id, req.body.items)
-      await findOrderByID(order.id).then(ressult =>{
-        return res.status(httpStatus.OK).json({ ressult });
-      })
-     
+      await createOrderItem(order.id, req.body.items);
+      await findOrderByID(order.id).then((ressult) => {
+        return res.status(httpStatus.OK).json({ order: ressult });
+      });
       // .then(async (result) => {
       //   const adminTitle = 'New order from Fast Food';
       //   // @ts-ignore
@@ -297,6 +296,10 @@ const create = catchAsync(async (req: Request, res: Response) => {
         });
         if (result.payUrl) {
           // await updatePayment(payment.id,)
+          // await updatePayment(payment.id, {
+          //   paymentStatus: true,
+          //   paymentType: 'momo',
+          // });
         }
 
         return result;
@@ -429,10 +432,10 @@ const momo = catchAsync(async (req: Request, res: Response) => {
     if (resultCode != 0) {
       return res.status(400).json({ err: 'The trans doesnt finish' });
     } else {
-      DonHang.findOneAndUpdate(
-        { _id: orderId.split('-')[1] },
-        { TinhTrangThanhToan: 1 }
-      )
+      await updatePayment(req.body.orderId, {
+        paymentStatus: true,
+        paymentType: 'momo',
+      })
         .then((data) => res.status(200).json(data))
         .catch((err) => res.status(500).json(err));
     }
@@ -442,4 +445,4 @@ const momo = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export { index, show, create, filterOrders, momo,createByAdmin };
+export { index, show, create, filterOrders, momo, createByAdmin };

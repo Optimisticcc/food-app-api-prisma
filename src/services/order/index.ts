@@ -58,8 +58,8 @@ const findOrderByID = async (orderId: number) => {
 };
 
 const createOrder = async (order: OrderInput) => {
-  console.log("Order ",order)
-  let totalFUll = order.total
+  console.log('Order ', order);
+  let totalFUll = order.total;
   let dataAdd: Prisma.OrderCreateInput = {
     address: order.address,
     email: order.email,
@@ -67,47 +67,42 @@ const createOrder = async (order: OrderInput) => {
     note: order.note || '',
     orderStatus: order.orderStatus || false,
   };
-  if (order.customerId){
+  if (order.customerId) {
     dataAdd.Customer = {
       connect: { id: +order.customerId },
     };
   }
 
-  if (order.discountId){
+  if (order.discountId) {
     const discount = await prisma.discount.findFirst({
       where: {
-        id: order.discountId
-      }
-    })
-    if (discount){
-      totalFUll = Number(discount.discountPercent) > 0 ? totalFUll - totalFUll*Number(discount.discountPercent): totalFUll
+        id: order.discountId,
+      },
+    });
+    if (discount) {
+      totalFUll =
+        Number(discount.discountPercent) > 0
+          ? totalFUll - totalFUll * Number(discount.discountPercent)
+          : totalFUll;
       dataAdd.discount = {
         connect: {
-          id: discount.id
-        }
-      }
+          id: discount.id,
+        },
+      };
     }
-    
   }
- 
+
   if (order.userId) {
     dataAdd.user = {
       connect: { id: order.userId },
     };
   }
-  try {
-    const oderCreate = await prisma.order.create({
-      data: {
-        ...dataAdd,
-        total: totalFUll
-      }
-    });
-    console.log("ORder create",oderCreate)
-    return oderCreate
-  } catch (error) {
-    console.log({error})
-  }
-  return undefined
+  return prisma.order.create({
+    data: {
+      ...dataAdd,
+      total: totalFUll,
+    },
+  });
 };
 
 export { filterOrder, createOrder, findOrderByID, findOrder };
