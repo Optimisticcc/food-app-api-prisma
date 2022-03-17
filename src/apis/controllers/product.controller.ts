@@ -175,12 +175,10 @@ const update = catchAsync(async (req: Request, res: Response) => {
 //     BlogCategory: 0,
 //     image: 0,
 const remove = catchAsync(async (req: Request, res: Response) => {
-  const imageOfProduct = await getImagesOfProduct(+req.params.id);
-  for (const img of imageOfProduct) {
-    await disconnectImageToProduct(img);
-  }
-  const product = await prisma.product.delete({
-    where: { id: +req.params.id },
+  const product = await prisma.product.update({
+    where: { id: +req.params.id },data: {
+      isActive: false
+    }
   });
 
   if (!product) {
@@ -201,6 +199,5 @@ export {
   update,
   remove,
   show,
-  getProductByCode,
   getAllProductByCategory,
 };

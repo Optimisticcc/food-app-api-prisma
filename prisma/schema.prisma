@@ -33,6 +33,7 @@ model Product {
   id                Int              @id @default(autoincrement())
   name              String
   price             Decimal          @db.Decimal(10, 2)
+  isActive          Boolean?         @default(true) @db.Bit
   description       String?          @db.VarChar(8000)
   quantity          Int
   quantitySold      Int
@@ -53,8 +54,7 @@ model Discount {
   expirationDate  DateTime
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())
-  order           Order?   @relation(fields: [orderId], references: [id])
-  orderId         Int?     @unique
+  Order           Order[]
 }
 
 model Image {
@@ -138,8 +138,9 @@ model Order {
   userId        Int?
   Customer      Customer?      @relation(fields: [customerId], references: [id])
   customerId    Int?
-  Discount      Discount?
+  discount      Discount?      @relation(fields: [discountId], references: [id])
   PaymentDetail PaymentDetail?
+  discountId    Int?
 }
 
 model OrderItem {
