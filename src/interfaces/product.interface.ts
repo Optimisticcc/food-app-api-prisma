@@ -8,6 +8,7 @@ export interface ProductInput {
   productCategoryId: number;
   images: any[];
   userId?: number;
+  isActive?: boolean;
 }
 
 export interface ProductUpdate {
@@ -19,6 +20,7 @@ export interface ProductUpdate {
   code?: string;
   productCategoryId?: number;
   images?: any[];
+  isActive?: boolean;
 }
 
 export interface OrderItemITF {

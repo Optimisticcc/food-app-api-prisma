@@ -13,6 +13,7 @@ const createProduct = async (data: ProductInput) => {
     quantity: data.quantity,
     quantitySold: data.quantitySold,
     description: data.description || '',
+    isActive: data.isActive ? true : false,
   };
 
   dataAdd.ProductCategory = {
@@ -44,6 +45,7 @@ const updateProduct = async (id: number, data: ProductUpdate) => {
     quantity: data.quantity,
     quantitySold: data.quantitySold,
     description: data.description || '',
+    isActive: data.isActive ? true : false,
   };
 
   return prisma.product.update({

@@ -6,7 +6,6 @@ import {
   update,
   remove,
   show,
-  getProductByCode,
   getAllProductByCategory,
 } from '../controllers/product.controller';
 import { requireLogin, requireEmployee } from '../../middlewares/requireUser';
