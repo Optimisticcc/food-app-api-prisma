@@ -1,4 +1,4 @@
-import { OrderInput } from '../../interfaces';
+import { OrderInput, OrderUpdateInput } from '../../interfaces';
 import { Prisma, PrismaClient, Discount } from '@prisma/client';
 import ApiError from '../../utils/api-error';
 import { getDiscountByCode, getDiscountDefault } from '../discount';
@@ -11,7 +11,15 @@ const filterOrder = async (filter: Prisma.OrderWhereInput) => {
     where: filter,
     include: {
       Customer: true,
-      orderItems: true,
+      orderItems: {
+        include: {
+          Product: {
+            include: {
+              images: true,
+            },
+          },
+        },
+      },
       user: true,
       PaymentDetail: true,
       discount: true,
@@ -80,7 +88,10 @@ const createOrder = async (order: OrderInput) => {
         id: order.discountId,
       },
     });
-    console.log("🚀 ~ file: index.ts ~ line 83 ~ createOrder ~ discount", discount)
+    console.log(
+      '🚀 ~ file: index.ts ~ line 83 ~ createOrder ~ discount',
+      discount
+    );
     if (discount) {
       totalFUll =
         discount.code !== 'ZERO' &&
@@ -113,4 +124,66 @@ const createOrder = async (order: OrderInput) => {
   });
 };
 
-export { filterOrder, createOrder, findOrderByID, findOrder };
+const updateOrder = async (orderId: number, order: OrderUpdateInput) => {
+  console.log('🚀 ~ file: index.ts ~ line 61 ~ createOrder ~ order', order);
+  let totalFUll = order.total;
+  let dataAdd: Prisma.OrderUpdateInput = {
+    note: order.note || '',
+    orderStatus: order.orderStatus ? true : false,
+  };
+
+  if (order.discountId) {
+    const discount = await prisma.discount.findFirst({
+      where: {
+        id: order.discountId,
+      },
+    });
+    if (discount) {
+      totalFUll =
+        discount.code !== 'ZERO' &&
+        Number(discount.discountPercent) > 0 &&
+        discount.isActive
+          ? totalFUll -
+            Math.round((totalFUll * Number(discount.discountPercent)) / 100)
+          : totalFUll;
+      dataAdd.discount = {
+        connect: {
+          id: discount.id,
+        },
+      };
+    }
+  }
+  console.log(
+    '🚀 ~ file: index.ts ~ line 113 ~ createOrder ~ totalFUll',
+    totalFUll
+  );
+  return prisma.order.update({
+    where: {
+      id: +orderId,
+    },
+    data: {
+      ...dataAdd,
+      total: totalFUll,
+    },
+  });
+};
+
+const disconnectDiscount = async (orderId: number) => {
+  return prisma.order.update({
+    where: {
+      id: +orderId,
+    },
+    data: {
+      discount: { disconnect: true },
+    },
+  });
+};
+
+export {
+  filterOrder,
+  createOrder,
+  findOrderByID,
+  findOrder,
+  disconnectDiscount,
+  updateOrder,
+};

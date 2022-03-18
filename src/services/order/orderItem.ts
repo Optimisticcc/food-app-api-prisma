@@ -23,4 +23,12 @@ const createOrderItem = async (orderId: number, arrProduct: OrderItems[]) => {
   });
 };
 
-export { createOrderItem };
+const disconnectOrderItem = async (orderId: number) => {
+  return prisma.orderItem.deleteMany({
+    where: {
+      orderId: +orderId,
+    },
+  });
+};
+
+export { createOrderItem, disconnectOrderItem };

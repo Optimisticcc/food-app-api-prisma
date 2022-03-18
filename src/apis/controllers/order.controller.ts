@@ -15,6 +15,10 @@ import {
   createPaymentDetail,
   findOrder,
   updatePayment,
+  disconnectOrderItem,
+  disconnectDiscount,
+  updateOrder,
+  updatePaymentOfOrder,
 } from '../../services';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { getDiscountByCode } from '../../services';
@@ -61,41 +65,18 @@ const index = catchAsync(async (req: Request, res: Response) => {
 // Limit là số data 1 trang
 // Skip là bỏ qua bnh dữ liệu
 const filterOrders = catchAsync(async (req: Request, res: Response) => {
-  // const orders = await getAllProducts(
-  //   req.querymen.query,
-  //   req.querymen.cursor
-  // );
-  // const { pageNo, pageSize } = req.query;
-  // const pageNum = parseInt(pageNo as string) || 1;
-  // const perPageNum = parseInt(pageSize as string) || 10;
-  // let result = products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum);
-  // let data;
-  // if (req.querymen.cursor.sort.hasOwnProperty('name')) {
-  //   data = orderBy(
-  //     result,
-  //     ['name'],
-  //     req.querymen.cursor.sort.name === 1 ? ['asc'] : ['desc']
-  //   );
-  // } else if (req.querymen.cursor.sort.hasOwnProperty('price')) {
-  //   data = orderBy(
-  //     result,
-  //     ['price'],
-  //     req.querymen.cursor.sort.price === 1 ? ['asc'] : ['desc']
-  //   );
-  // } else if (req.querymen.cursor.sort.hasOwnProperty('quantitySold')) {
-  //   data = orderBy(result, ['quantitySold'], ['desc']);
-  // } else if (req.querymen.cursor.sort.hasOwnProperty('id')) {
-  //   data = orderBy(result, ['id'], ['desc']);
-  // } else {
-  //   data = orderBy(result, ['createdAt'], ['desc']);
-  // }
-  // return res.status(httpStatus.OK).json({
-  //   data: data,
-  //   totalCount: products.length,
-  //   totalPage: Math.ceil(products.length / perPageNum),
-  //   pageSize: perPageNum,
-  //   pageNo: pageNum,
-  // });
+  const orders = await filterOrder(req.body);
+  const { pageNo, pageSize } = req.query;
+  const pageNum = parseInt(pageNo as string) || 1;
+  const perPageNum = parseInt(pageSize as string) || 10;
+  let result = orders.slice((pageNum - 1) * perPageNum, pageNum * perPageNum);
+  return res.status(httpStatus.OK).json({
+    data: result,
+    totalCount: orders.length,
+    totalPage: Math.ceil(orders.length / perPageNum),
+    pageSize: perPageNum,
+    pageNo: pageNum,
+  });
 });
 
 const show = catchAsync(async (req: Request, res: Response) => {
@@ -201,30 +182,6 @@ const createByAdmin = catchAsync(async (req: Request, res: Response) => {
       await findOrderByID(order.id).then((ressult) => {
         return res.status(httpStatus.OK).json({ order: ressult });
       });
-      // .then(async (result) => {
-      //   const adminTitle = 'New order from Fast Food';
-      //   // @ts-ignore
-      //   await sendMail({
-      //     to: result.newData?.email,
-      //     subject: `New order from Vegelite [${result.newData.id}]`,
-      //     message: pug.renderFile(`${__dirname}\\template.pug`, {
-      //       title: adminTitle,
-      //       order: result.newData,
-      //       shopName: 'Vegelite',
-      //     }),
-      //   });
-      //   if (result.payUrl) {
-      //     // await updatePayment(payment.id,)
-      //   }
-
-      //   return result;
-      // })
-      // .then((data) => {
-      //   return res.status(httpStatus.OK).json({ data });
-      // })
-      // .catch((err: any) => {
-      //   return res.status(500).json({ message: err.message });
-      // });
     }
   } catch (error: any) {
     return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
@@ -297,7 +254,7 @@ const create = catchAsync(async (req: Request, res: Response) => {
     });
     const payment = await createPaymentDetail(order.id, {
       ...req.body,
-      amount: order.total,
+      amount: Number(order.total),
     });
     await createOrderItem(order.id, req.body.items);
     await findOrderByID(order.id)
@@ -326,10 +283,10 @@ const create = catchAsync(async (req: Request, res: Response) => {
         });
         if (result.payUrl) {
           // await updatePayment(payment.id,)
-          // await updatePayment(payment.id, {
-          //   paymentStatus: true,
-          //   paymentType: 'momo',
-          // });
+          await updatePayment(payment.id, {
+            paymentStatus: true,
+            paymentType: 'momo',
+          });
         }
 
         return result;
@@ -351,11 +308,17 @@ const create = catchAsync(async (req: Request, res: Response) => {
 const update = catchAsync(async (req: Request, res: Response) => {
   const order = await findOrder(+req.params.id);
   if (order) {
+    let total = 0;
     if (req.body.items && req.body.items.length > 0) {
+      console.log(
+        '🚀 ~ file: order.controller.ts ~ line 109 ~ create ~ req.body.items',
+        req.body.items,
+        req.body.items.map((i: any) => +i.product)
+      );
       const products = await prisma.product.findMany({
         where: {
           id: {
-            in: req.body.items.map((i: any) => i.product.id),
+            in: req.body.items.map((i: any) => +i.product),
           },
         },
         select: {
@@ -365,20 +328,20 @@ const update = catchAsync(async (req: Request, res: Response) => {
           price: true,
         },
       });
+      console.log(products, 'products');
       if (products && products.length > 0) {
         let notice = '';
 
         let count = 0;
 
         for (const [index, item] of req.body.items.entries()) {
-          const p = products.find((i) => i.id === item.product.id);
+          const p = products.find((i) => i.id === item.product);
 
           if (!p) {
             count = count + 1;
             notice =
-              notice +
-              `Không tìm thấy sản phẩm có id bằng ${item.product.code}\n`;
-          } else if (p.quantity < 1 && !order.orderItems) {
+              notice + `Không tìm thấy sản phẩm có id bằng ${item.product}\n`;
+          } else if (p.quantity < 1) {
             count = count + 1;
             notice = notice + `Sản phẩm có id bằng ${p.code} đã hết hàng\n`;
           } else if (p.quantity < item.quantity) {
@@ -387,6 +350,7 @@ const update = catchAsync(async (req: Request, res: Response) => {
               notice + `Sản phẩm có id bằng ${p.code} không đủ số lượng \n`;
           } else {
             req.body.items[index].product = p;
+            total += Number(p.price) * item.quantity;
           }
         }
         if (count > 0) {
@@ -398,17 +362,28 @@ const update = catchAsync(async (req: Request, res: Response) => {
           .json({ message: 'Không tìm thấy sản phẩm nào phù hợp' });
       }
     }
+    await disconnectOrderItem(order.id);
+    await disconnectDiscount(order.id);
+    await createOrderItem(order.id, req.body.items);
+    const orderUpdate = await updateOrder(order.id, {
+      ...req.body,
+      total: total,
+    });
+    const paymentDetail = await updatePaymentOfOrder(orderUpdate.id, {
+      ...req.body,
+      amount: Number(orderUpdate.total),
+    });
+    if (orderUpdate && paymentDetail) {
+      return res.status(httpStatus.OK).json({
+        message: 'update order successfully',
+        success: true,
+      });
+    }
   }
-  // if (!product) {
-  //   return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-  //     message: 'update product failed',
-  //     success: false,
-  //   });
-  // }
-  // return res.status(httpStatus.OK).json({
-  //   message: 'update product successfully',
-  //   success: true,
-  // });
+  return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
+    message: 'update order failed',
+    success: false,
+  });
 });
 
 const remove = catchAsync(async (req: Request, res: Response) => {
@@ -485,4 +460,13 @@ const momo = catchAsync(async (req: Request, res: Response) => {
   }
 });
 
-export { index, show, create, filterOrders, momo, createByAdmin, remove };
+export {
+  index,
+  show,
+  create,
+  filterOrders,
+  momo,
+  createByAdmin,
+  remove,
+  update,
+};

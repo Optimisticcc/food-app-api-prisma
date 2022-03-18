@@ -10,6 +10,7 @@ import {
   momo,
   createByAdmin,
   remove,
+  update,
 } from '../controllers/order.controller';
 
 // router
@@ -21,9 +22,13 @@ import {
 // router.route('/logout').get(requireUser, logout);
 import { middleware as query } from '../../utils/querymen';
 router.route('/').get(requireLogin, index).post(requireLogin, create);
-router.route('/filter').get(requireLogin, query(), filterOrders);
+router.route('/filter').get(requireLogin, filterOrders);
 router.route('/create').post(requireLogin, createByAdmin);
 router.route('/momo').post(momo);
-router.route('/:id').get(show).delete(requireLogin, remove);
+router
+  .route('/:id')
+  .get(show)
+  .put(requireLogin, update)
+  .delete(requireLogin, remove);
 
 export default router;

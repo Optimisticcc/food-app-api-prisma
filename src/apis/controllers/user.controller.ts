@@ -69,7 +69,11 @@ const signIn = catchAsync(async (req: Request, res: Response) => {
     },
     env.passport.jwtAccessExpired as string
   );
-  return res.status(httpStatus.OK).json({ ...user, token });
+  const pers = await getPermisionOfUser(user.id);
+  const persOfUser = pers.map((per) => per.name);
+  return res
+    .status(httpStatus.OK)
+    .json({ ...user, token, permision: persOfUser });
 });
 
 const editProfile = catchAsync(async (req: Request, res: Response) => {

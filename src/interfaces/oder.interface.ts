@@ -1,5 +1,4 @@
 export interface OrderInput {
-  code?: string;
   total: number;
   note?: string | null;
   orderStatus: boolean;
@@ -11,12 +10,18 @@ export interface OrderInput {
   discountId?: number;
 }
 
+export interface OrderUpdateInput {
+  total?: number;
+  note?: string | null;
+  orderStatus?: boolean;
+  discountId?: number;
+}
+
+
 export interface PaymentUpSert {
   amount?: number;
   paymentType?: string;
   paymentStatus?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface PaymentInput {
