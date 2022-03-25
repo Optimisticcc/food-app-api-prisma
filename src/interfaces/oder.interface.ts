@@ -15,6 +15,8 @@ export interface OrderUpdateInput {
   note?: string | null;
   orderStatus?: boolean;
   discountId?: number;
+  userId?: number;
+  customerId: number;
 }
 
 

@@ -369,6 +369,12 @@ const update = catchAsync(async (req: Request, res: Response) => {
       ...req.body,
       total: total,
     });
+    if (!orderUpdate) {
+      return res.status(httpStatus.OK).json({
+        message: 'update order failed order not found',
+        success: true,
+      });
+    }
     const paymentDetail = await updatePaymentOfOrder(orderUpdate.id, {
       ...req.body,
       amount: Number(orderUpdate.total),

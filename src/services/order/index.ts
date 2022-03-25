@@ -125,7 +125,16 @@ const createOrder = async (order: OrderInput) => {
 };
 
 const updateOrder = async (orderId: number, order: OrderUpdateInput) => {
-  console.log('🚀 ~ file: index.ts ~ line 61 ~ createOrder ~ order', order);
+  await prisma.order.update({
+    where: {
+      id: +orderId,
+    },
+    data: {
+      Customer: { disconnect: true },
+      user: { disconnect: true },
+      discount: { disconnect: true },
+    },
+  });
   let totalFUll = order.total;
   let dataAdd: Prisma.OrderUpdateInput = {
     note: order.note || '',
@@ -153,8 +162,30 @@ const updateOrder = async (orderId: number, order: OrderUpdateInput) => {
       };
     }
   }
+
+  if (order.userId) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: +order.userId,
+      },
+    });
+    if (user) {
+      dataAdd.user = {
+        connect: {
+          id: user.id,
+        },
+      };
+    }
+  }
+
+  if (order.customerId) {
+    dataAdd.Customer = {
+      connect: { id: order.customerId },
+    };
+  }
+
   console.log(
-    '🚀 ~ file: index.ts ~ line 113 ~ createOrder ~ totalFUll',
+    '🚀 ~ file: index.ts ~ line 187 ~ createOrder ~ totalFUll',
     totalFUll
   );
   return prisma.order.update({
