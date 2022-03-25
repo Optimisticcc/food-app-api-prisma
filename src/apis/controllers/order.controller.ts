@@ -16,7 +16,6 @@ import {
   findOrder,
   updatePayment,
   disconnectOrderItem,
-  disconnectDiscount,
   updateOrder,
   updatePaymentOfOrder,
 } from '../../services';
@@ -363,7 +362,6 @@ const update = catchAsync(async (req: Request, res: Response) => {
       }
     }
     await disconnectOrderItem(order.id);
-    await disconnectDiscount(order.id);
     await createOrderItem(order.id, req.body.items);
     const orderUpdate = await updateOrder(order.id, {
       ...req.body,

@@ -199,22 +199,15 @@ const updateOrder = async (orderId: number, order: OrderUpdateInput) => {
   });
 };
 
-const disconnectDiscount = async (orderId: number) => {
-  return prisma.order.update({
-    where: {
-      id: +orderId,
-    },
-    data: {
-      discount: { disconnect: true },
-    },
-  });
-};
+// const disconnectDiscount = async (orderId: number) => {
+//   return prisma.order.update({
+//     where: {
+//       id: +orderId,
+//     },
+//     data: {
+//       discount: { disconnect: true },
+//     },
+//   });
+// };
 
-export {
-  filterOrder,
-  createOrder,
-  findOrderByID,
-  findOrder,
-  disconnectDiscount,
-  updateOrder,
-};
+export { filterOrder, createOrder, findOrderByID, findOrder, updateOrder };
