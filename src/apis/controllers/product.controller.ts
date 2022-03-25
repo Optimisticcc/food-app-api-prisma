@@ -25,25 +25,44 @@ const prisma = new PrismaClient();
 const index = catchAsync(async (req: Request, res: Response) => {
   const products = await getAllProducts(
     req.querymen.query,
+
     req.querymen.cursor
   );
-
+  console.log(
+    '🚀 ~ file: product.controller.ts ~ line 28 ~ index ~ req.querymen.query',
+    req.querymen.query
+  );
+  console.log(
+    '🚀 ~ file: product.controller.ts ~ line 30 ~ index ~  req.querymen.cursor',
+    req.querymen.cursor
+  );
   const { pageNo, pageSize } = req.query;
   const pageNum = parseInt(pageNo as string) || 1;
   const perPageNum = parseInt(pageSize as string) || 10;
   let result = products.slice((pageNum - 1) * perPageNum, pageNum * perPageNum);
+  result = result.map((resulTT) => {
+    return {
+      ...resulTT,
+      price: +resulTT.price,
+    };
+  });
   let data;
   if (req.querymen.cursor.sort.hasOwnProperty('name')) {
     data = orderBy(
       result,
       ['name'],
-      req.querymen.cursor.sort.name === 1 ? ['asc'] : ['desc']
+      req.querymen.cursor.sort.name === -1 ? ['asc'] : ['desc']
     );
   } else if (req.querymen.cursor.sort.hasOwnProperty('price')) {
+    console.log('Theo price');
     data = orderBy(
       result,
       ['price'],
-      req.querymen.cursor.sort.price === 1 ? ['asc'] : ['desc']
+      req.querymen.cursor.sort.price === -1 ? ['asc'] : ['desc']
+    );
+    console.log(
+      '🚀 ~ file: product.controller.ts ~ line 53 ~ index ~ data',
+      data
     );
   } else if (req.querymen.cursor.sort.hasOwnProperty('quantitySold')) {
     data = orderBy(result, ['quantitySold'], ['desc']);
